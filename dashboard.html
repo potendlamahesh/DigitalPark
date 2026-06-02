@@ -183,23 +183,93 @@ window.addEventListener('resize', () => {
 });
 
 // Location
-window.fetchLocation = function() {
+window.fetchLocation = function () {
+
   const txt = document.getElementById('location-txt');
   const ico = document.getElementById('loc-icon');
-  ico.style.animation = 'spin .8s linear infinite';
+
+  if (ico) {
+    ico.style.animation = 'spin .8s linear infinite';
+  }
+
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      ico.style.animation = '';
-      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`)
-        .then(r=>r.json()).then(d=>{
-          const loc = `${d.address?.city||d.address?.town||'Guntur'}, ${d.address?.state||'AP'}`;
+
+    navigator.geolocation.getCurrentPosition(
+
+      async (pos) => {
+
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+
+        try {
+
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+          );
+
+          const data = await response.json();
+
+          const city =
+            data.address?.city ||
+            data.address?.town ||
+            data.address?.village ||
+            data.address?.county ||
+            "Unknown";
+
+          const state =
+            data.address?.state || "";
+
+          const loc = `${city}, ${state}`;
+
           txt.textContent = loc;
-          if(document.getElementById('desktop-loc')) document.getElementById('desktop-loc').textContent = loc;
-        }).catch(()=>{ txt.textContent='Guntur, Andhra Pradesh'; });
+
+          if (document.getElementById('desktop-loc')) {
+            document.getElementById('desktop-loc').textContent = loc;
+          }
+
+        } catch (e) {
+
+          txt.textContent =
+            `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+
+        }
+
+        if (ico) {
+          ico.style.animation = '';
+        }
+
+      },
+
+      () => {
+
+        txt.textContent = 'Guntur, Andhra Pradesh';
+
+        if (ico) {
+          ico.style.animation = '';
+        }
+
+      },
+
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 60000
+      }
+
+    );
+
+  } else {
+
+    txt.textContent = 'Geolocation not supported';
+
+    if (ico) {
       ico.style.animation = '';
-    }, ()=>{ txt.textContent='Guntur, Andhra Pradesh'; ico.style.animation=''; });
-  } else { txt.textContent='Guntur, Andhra Pradesh'; ico.style.animation=''; }
+    }
+
+  }
+
 };
+
 fetchLocation();
 
 // Lot card HTML
