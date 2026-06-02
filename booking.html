@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>SmartPark — Book Slot</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+
+<!-- App bar -->
+<div class="app-bar" style="padding-top:52px;border-bottom:1px solid var(--border)">
+  <div style="display:flex;align-items:center;gap:12px">
+    <a href="dashboard.html" style="width:36px;height:36px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center">
+      <i class="material-icons" style="font-size:20px">arrow_back</i>
+    </a>
+    <span id="parking-name" style="font-size:17px;font-weight:800;letter-spacing:-.3px">Booking</span>
+  </div>
+  <span style="font-size:11px;font-weight:700;color:var(--primary);background:rgba(0,198,162,.1);border:1px solid rgba(0,198,162,.2);padding:4px 10px;border-radius:8px">🚗 Car Park</span>
+</div>
+
+<div class="page" style="padding-top:0">
+  <div style="padding:18px 20px 0">
+
+    <!-- Date/Time pickers -->
+    <div class="picker-row">
+      <div class="picker-card">
+        <div class="pc-label"><i class="material-icons" style="font-size:11px">calendar_today</i> Date</div>
+        <input type="date" id="pick-date" style="border:none;background:transparent;font-size:14px;font-weight:800;color:var(--text);outline:none;width:100%">
+      </div>
+      <div class="picker-card">
+        <div class="pc-label"><i class="material-icons" style="font-size:11px">access_time</i> From</div>
+        <input type="time" id="pick-from" value="10:00" style="border:none;background:transparent;font-size:14px;font-weight:800;color:var(--text);outline:none;width:100%" onchange="recalcCost()">
+      </div>
+      <div class="picker-card">
+        <div class="pc-label"><i class="material-icons" style="font-size:11px">timer</i> To</div>
+        <input type="time" id="pick-to" value="12:00" style="border:none;background:transparent;font-size:14px;font-weight:800;color:var(--text);outline:none;width:100%" onchange="recalcCost()">
+      </div>
+      <div class="picker-card" style="background:rgba(0,198,162,.08);border-color:rgba(0,198,162,.25)">
+        <div class="pc-label" style="color:var(--primary)"><i class="material-icons" style="font-size:11px">hourglass_bottom</i> Duration</div>
+        <div class="pc-val text-primary" id="cost-duration">2h 0m</div>
+      </div>
+    </div>
+
+    <!-- Cost bar -->
+    <div class="cost-bar">
+      <div class="cost-chip"><div class="cv" id="cost-duration2">2h 0m</div><div class="cl">Duration</div></div>
+      <div class="cost-divider"></div>
+      <div class="cost-chip"><div class="cv" id="cost-rate">₹20/hr</div><div class="cl">Rate</div></div>
+      <div class="cost-divider"></div>
+      <div class="cost-chip"><div class="cv highlight" id="cost-est">₹40</div><div class="cl">Est. Cost</div></div>
+    </div>
+
+    <!-- Car number plate -->
+    <label class="input-label">Car Number Plate</label>
+    <div class="plate-wrap" style="margin-bottom:6px">
+      <div class="plate-prefix"><span>🇮🇳</span><span>IN</span></div>
+      <input type="text" id="plate-input" placeholder="TG 09 AB 1234"
+        style="letter-spacing:2.5px;font-weight:800;font-size:17px;text-transform:uppercase"
+        oninput="this.value=this.value.toUpperCase();updateSummaryPlate()">
+    </div>
+    <div class="error-msg hidden" id="plate-error">
+      <i class="material-icons">error_outline</i><span>Please enter your car number plate</span>
+    </div>
+
+    <!-- Floor tabs -->
+    <div style="margin-top:20px">
+      <label class="input-label">Select Floor</label>
+      <div class="floor-tabs" id="floor-tabs"></div>
+    </div>
+
+    <!-- Slot legend + grid -->
+    <div style="margin-top:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <label class="input-label" style="margin:0">Car Slots</label>
+        <div class="slot-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(0,198,162,.5)"></div>Free</div>
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(255,92,92,.5)"></div>Taken</div>
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(255,181,71,.5)"></div>Reserved</div>
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(59,130,246,.5)"></div>Accessible</div>
+        </div>
+      </div>
+      <div class="card card-compact">
+        <div id="slot-grid-container"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Bottom action bar -->
+<div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--bg-card);border-top:1px solid var(--border);padding:12px 18px 28px;z-index:50">
+  <!-- Slot summary (hidden until slot selected) -->
+  <div class="slot-summary hidden" id="slot-summary">
+    <div class="slot-badge" id="summary-slot">A02</div>
+    <div class="slot-info">
+      <div class="si-floor" id="summary-floor">Ground · Slot A02</div>
+      <div class="si-plate" id="summary-plate">Enter plate above</div>
+    </div>
+    <div class="slot-cost" id="summary-cost">₹40</div>
+  </div>
+  <button class="btn btn-primary btn-full" id="confirm-btn" disabled>
+    Select a Car Slot to Continue
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initBooking } from './js/booking.js';
+initBooking();
+window.recalcCost = () => {
+  const lot = JSON.parse(sessionStorage.getItem('sp_selected_lot')||'{}');
+  if (lot.price) {
+    const from = document.getElementById('pick-from').value || '10:00';
+    const to   = document.getElementById('pick-to').value   || '12:00';
+    const [fh,fm] = from.split(':').map(Number);
+    const [th,tm] = to.split(':').map(Number);
+    const mins = Math.max(60, (th*60+tm)-(fh*60+fm));
+    const rate = parseInt(lot.price);
+    const cost = ((mins/60)*rate).toFixed(0);
+    const dur  = `${Math.floor(mins/60)}h ${mins%60}m`;
+    document.getElementById('cost-duration').textContent  = dur;
+    document.getElementById('cost-duration2').textContent = dur;
+    document.getElementById('cost-rate').textContent      = lot.price;
+    document.getElementById('cost-est').textContent       = `₹${cost}`;
+    document.getElementById('summary-cost').textContent   = `₹${cost}`;
+  }
+};
+window.updateSummaryPlate = () => {
+  const v = document.getElementById('plate-input').value;
+  document.getElementById('summary-plate').textContent = v || 'Enter plate above ↑';
+  document.getElementById('summary-plate').style.color = v ? 'var(--text-muted)' : 'var(--red)';
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>SmartPark — Settings</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+.setting-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 0; border-bottom:1px solid var(--border);
+}
+.setting-row:last-child { border:none; }
+.setting-left { display:flex; align-items:center; gap:12px; }
+.setting-icon {
+  width:36px; height:36px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center; font-size:18px;
+}
+.setting-lbl { font-size:14px; font-weight:500; }
+.setting-sub { font-size:11px; color:var(--text-muted); margin-top:1px; }
+/* Toggle switch */
+.toggle { position:relative; width:48px; height:26px; flex-shrink:0; }
+.toggle input { opacity:0; width:0; height:0; }
+.slider {
+  position:absolute; inset:0; cursor:pointer;
+  background:var(--bg-card3); border-radius:26px; transition:.3s;
+  border:1px solid var(--border);
+}
+.slider::before {
+  content:''; position:absolute;
+  height:20px; width:20px; left:2px; bottom:2px;
+  background:#fff; border-radius:50%; transition:.3s;
+  box-shadow:0 1px 4px rgba(0,0,0,.15);
+}
+input:checked + .slider { background:var(--primary); border-color:var(--primary); }
+input:checked + .slider::before { transform:translateX(22px); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- App bar -->
+  <div class="app-bar" style="padding-top:48px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="profile.html" style="width:36px;height:36px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center">
+        <i class="material-icons" style="font-size:20px">arrow_back</i>
+      </a>
+      <h2>Settings</h2>
+    </div>
+  </div>
+
+  <div style="padding:8px 20px 100px">
+
+    <!-- Profile edit -->
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;margin:16px 0 10px">PROFILE</div>
+    <div class="card" style="margin-bottom:20px">
+      <div style="margin-bottom:14px">
+        <label class="input-label">Full Name</label>
+        <div class="input-wrap">
+          <i class="material-icons inp-icon">person</i>
+          <input type="text" id="set-name" placeholder="Your full name">
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label class="input-label">Email Address</label>
+        <div class="input-wrap">
+          <i class="material-icons inp-icon">mail</i>
+          <input type="email" id="set-email" placeholder="you@email.com">
+        </div>
+      </div>
+      <div>
+        <label class="input-label">Default Car Plate</label>
+        <div class="plate-wrap">
+          <div class="plate-prefix"><span>🇮🇳</span><span>IN</span></div>
+          <input type="text" id="set-plate" placeholder="TG 09 AB 1234"
+            style="letter-spacing:2px;font-weight:800;text-transform:uppercase">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" style="margin-top:16px" onclick="saveProfile()">
+        <i class="material-icons">save</i> Save Changes
+      </button>
+    </div>
+
+    <!-- Notifications -->
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;margin-bottom:10px">NOTIFICATIONS</div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="setting-row">
+        <div class="setting-left">
+          <div class="setting-icon" style="background:rgba(0,198,162,.1)"><i class="material-icons" style="color:var(--primary)">notifications</i></div>
+          <div><div class="setting-lbl">Push Notifications</div><div class="setting-sub">Booking alerts & reminders</div></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="notif-push" checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <div class="setting-left">
+          <div class="setting-icon" style="background:rgba(59,130,246,.1)"><i class="material-icons" style="color:var(--blue)">sms</i></div>
+          <div><div class="setting-lbl">SMS Alerts</div><div class="setting-sub">OTP and booking confirmations</div></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="notif-sms" checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <div class="setting-left">
+          <div class="setting-icon" style="background:rgba(255,181,71,.1)"><i class="material-icons" style="color:var(--amber)">timer</i></div>
+          <div><div class="setting-lbl">Expiry Reminders</div><div class="setting-sub">Alert 30 min before slot expires</div></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="notif-expiry" checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <div class="setting-left">
+          <div class="setting-icon" style="background:rgba(139,92,246,.1)"><i class="material-icons" style="color:var(--purple)">local_offer</i></div>
+          <div><div class="setting-lbl">Offers & Promotions</div><div class="setting-sub">Discounts on parking</div></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="notif-offers"><span class="slider"></span></label>
+      </div>
+    </div>
+
+    <!-- Preferences -->
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;margin-bottom:10px">PREFERENCES</div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="setting-row">
+        <div class="setting-left">
+          <div class="setting-icon" style="background:rgba(0,198,162,.1)"><i class="material-icons" style="color:var(--primary)">location_on</i></div>
+          <div><div class="setting-lbl">Auto-detect Location</div><div class="setting-sub">Find nearest parking automatically</div></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="pref-location" checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <div class="setting-left">
+          <div class="setting-icon" style="background:rgba(59,130,246,.1)"><i class="material-icons" style="color:var(--blue)">history</i></div>
+          <div><div class="setting-lbl">Save Search History</div><div class="setting-sub">Quick access to recent searches</div></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="pref-history" checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <div class="setting-left">
+          <div class="setting-icon" style="background:rgba(255,181,71,.1)"><i class="material-icons" style="color:var(--amber)">ev_station</i></div>
+          <div><div class="setting-lbl">Prefer EV Slots</div><div class="setting-sub">Show EV charging spots first</div></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="pref-ev"><span class="slider"></span></label>
+      </div>
+    </div>
+
+    <!-- Language -->
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;margin-bottom:10px">LANGUAGE & REGION</div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="setting-row" onclick="changeLang('en')">
+        <div class="setting-left">
+          <div class="setting-icon" style="background:#f5f5f5;font-size:20px">🇬🇧</div>
+          <div class="setting-lbl">English</div>
+        </div>
+        <i class="material-icons" id="lang-en" style="color:var(--primary)">check_circle</i>
+      </div>
+      <div class="setting-row" onclick="changeLang('te')">
+        <div class="setting-left">
+          <div class="setting-icon" style="background:#f5f5f5;font-size:20px">🏳️</div>
+          <div class="setting-lbl">తెలుగు</div>
+        </div>
+        <i class="material-icons" id="lang-te" style="color:var(--border)">check_circle</i>
+      </div>
+      <div class="setting-row" onclick="changeLang('hi')">
+        <div class="setting-left">
+          <div class="setting-icon" style="background:#f5f5f5;font-size:20px">🇮🇳</div>
+          <div class="setting-lbl">हिन्दी</div>
+        </div>
+        <i class="material-icons" id="lang-hi" style="color:var(--border)">check_circle</i>
+      </div>
+    </div>
+
+    <!-- App info -->
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;margin-bottom:10px">APP INFO</div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="setting-row">
+        <div class="setting-left">
+          <div class="setting-icon" style="background:rgba(0,198,162,.1)"><i class="material-icons" style="color:var(--primary)">info</i></div>
+          <div><div class="setting-lbl">App Version</div><div class="setting-sub">SmartPark v1.0.0</div></div>
+        </div>
+      </div>
+      <div class="setting-row" onclick="window.open('mailto:support@smartpark.in')">
+        <div class="setting-left">
+          <div class="setting-icon" style="background:rgba(59,130,246,.1)"><i class="material-icons" style="color:var(--blue)">help</i></div>
+          <div><div class="setting-lbl">Help & Support</div><div class="setting-sub">support@smartpark.in</div></div>
+        </div>
+        <i class="material-icons" style="color:var(--text-muted)">chevron_right</i>
+      </div>
+      <div class="setting-row">
+        <div class="setting-left">
+          <div class="setting-icon" style="background:rgba(255,92,92,.1)"><i class="material-icons" style="color:var(--red)">delete_forever</i></div>
+          <div><div class="setting-lbl" style="color:var(--red)">Delete Account</div><div class="setting-sub">Permanently remove all data</div></div>
+        </div>
+        <i class="material-icons" style="color:var(--text-muted)">chevron_right</i>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { getUser, saveUser } from './js/app.js';
+import { db }  from './js/firebase-config.js';
+import { doc, setDoc, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const user = getUser();
+
+// Load saved settings
+async function loadSettings() {
+  if (!user?.uid) return;
+  try {
+    const snap = await getDoc(doc(db,'users',user.uid));
+    if (snap.exists()) {
+      const d = snap.data();
+      document.getElementById('set-name').value  = d.name  || '';
+      document.getElementById('set-email').value = d.email || '';
+      document.getElementById('set-plate').value = d.vehicle || '';
+    }
+  } catch(_) {}
+
+  // Load toggle states
+  const prefs = JSON.parse(localStorage.getItem('sp_prefs') || '{}');
+  ['notif-push','notif-sms','notif-expiry','pref-location','pref-history'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = prefs[id] !== false; // default true
+  });
+  ['notif-offers','pref-ev'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = prefs[id] === true; // default false
+  });
+
+  // Language
+  const lang = localStorage.getItem('sp_lang') || 'en';
+  ['en','te','hi'].forEach(l => {
+    const el = document.getElementById(`lang-${l}`);
+    if (el) el.style.color = l === lang ? 'var(--primary)' : 'var(--border)';
+  });
+}
+
+window.saveProfile = async () => {
+  const name  = document.getElementById('set-name').value.trim();
+  const email = document.getElementById('set-email').value.trim();
+  const plate = document.getElementById('set-plate').value.trim().toUpperCase();
+  if (!name) { showToast('Enter your name'); return; }
+  if (user?.uid) {
+    await setDoc(doc(db,'users',user.uid), {name,email,vehicle:plate},{merge:true});
+    saveUser({...user, name, email});
+  }
+  showToast('Profile saved ✓');
+};
+
+window.changeLang = (l) => {
+  localStorage.setItem('sp_lang', l);
+  ['en','te','hi'].forEach(x => {
+    const el = document.getElementById(`lang-${x}`);
+    if (el) el.style.color = x === l ? 'var(--primary)' : 'var(--border)';
+  });
+  showToast('Language updated');
+};
+
+// Save toggles on change
+document.querySelectorAll('.toggle input').forEach(el => {
+  el.addEventListener('change', () => {
+    const prefs = JSON.parse(localStorage.getItem('sp_prefs') || '{}');
+    prefs[el.id] = el.checked;
+    localStorage.setItem('sp_prefs', JSON.stringify(prefs));
+  });
+});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+loadSettings();
+</script>
+</body>
+</html>

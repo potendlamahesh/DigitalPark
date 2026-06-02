@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>SmartPark — AI-Powered Car Parking</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  .hero { background: linear-gradient(135deg, #00C6A2, #009E82); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 40px 28px; position: relative; overflow: hidden; }
+  .hero::before { content:''; position:absolute; top:-80px; right:-80px; width:280px; height:280px; border-radius:50%; background:rgba(255,255,255,.08); }
+  .hero::after  { content:''; position:absolute; bottom:-120px; left:-60px; width:320px; height:320px; border-radius:50%; background:rgba(255,255,255,.06); }
+  .hero-logo { width:100px; height:100px; background:#fff; border-radius:28px; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 40px rgba(0,0,0,.15); margin-bottom:24px; position:relative; z-index:1; }
+  .hero-logo i { font-size:52px; color:#00C6A2; }
+  .hero h1 { color:#fff; font-size:40px; font-weight:900; letter-spacing:-1.5px; margin-bottom:8px; position:relative; z-index:1; }
+  .hero-badge { background:rgba(255,255,255,.2); color:#fff; padding:6px 16px; border-radius:20px; font-size:13px; font-weight:500; letter-spacing:.5px; margin-bottom:48px; position:relative; z-index:1; }
+  .hero-btns { display:flex; flex-direction:column; gap:12px; width:100%; max-width:320px; position:relative; z-index:1; }
+  .btn-white { background:#fff; color:#00C6A2; font-weight:800; box-shadow:0 6px 20px rgba(0,0,0,.15); }
+  .btn-white:hover { transform:translateY(-2px); }
+  .btn-outline-white { background:transparent; color:#fff; border:2px solid rgba(255,255,255,.5); }
+  .features { padding:40px 20px; background:#fff; }
+  .feature-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:20px; }
+  .feature-card { background:#F8FAFB; border:1px solid #E2E8F0; border-radius:16px; padding:16px; }
+  .feature-card .fi { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:10px; }
+  .feature-card h4 { font-size:13px; font-weight:700; margin-bottom:4px; }
+  .feature-card p { font-size:11px; color:#9BAAB8; line-height:1.5; }
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-logo"><i class="material-icons">local_parking</i></div>
+  <h1>SmartPark</h1>
+  <div class="hero-badge">AI-Powered Car Parking</div>
+  <div class="hero-btns">
+    <a href="login.html" class="btn btn-white btn-full">
+      <i class="material-icons">login</i> Get Started
+    </a>
+    <a href="dashboard.html" class="btn btn-outline-white btn-full">
+      <i class="material-icons">explore</i> Browse Parking
+    </a>
+  </div>
+</div>
+
+<div class="features">
+  <h2 style="text-align:center">Why SmartPark?</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="fi" style="background:rgba(0,198,162,.1)"><i class="material-icons" style="color:#00C6A2">map</i></div>
+      <h4>Live Map</h4>
+      <p>Real-time availability on Google Maps</p>
+    </div>
+    <div class="feature-card">
+      <div class="fi" style="background:rgba(59,130,246,.1)"><i class="material-icons" style="color:#3B82F6">bookmark_add</i></div>
+      <h4>Reserve Slots</h4>
+      <p>Book before you arrive, skip the wait</p>
+    </div>
+    <div class="feature-card">
+      <div class="fi" style="background:rgba(139,92,246,.1)"><i class="material-icons" style="color:#8B5CF6">psychology</i></div>
+      <h4>AI Prediction</h4>
+      <p>Smart suggestions based on busy hours</p>
+    </div>
+    <div class="feature-card">
+      <div class="fi" style="background:rgba(255,181,71,.1)"><i class="material-icons" style="color:#FFB547">qr_code</i></div>
+      <h4>QR Entry</h4>
+      <p>Scan to enter — no tickets needed</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

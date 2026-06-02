@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>SmartPark — QR Scanner</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+body { background:#000; }
+#reader { width:100% !important; }
+#reader video { width:100% !important; border-radius:0 !important; }
+#reader__scan_region { background:transparent !important; }
+
+.scan-overlay {
+  position:fixed; inset:0; pointer-events:none; z-index:10;
+  display:flex; flex-direction:column;
+}
+.top-shade    { flex:1; background:rgba(0,0,0,.65); }
+.middle-row   { display:flex; height:260px; }
+.side-shade   { flex:1; background:rgba(0,0,0,.65); }
+.scan-frame   { width:260px; position:relative; }
+.bottom-shade { flex:1; background:rgba(0,0,0,.65); }
+
+/* Corner brackets */
+.corner { position:absolute; width:28px; height:28px; }
+.corner-tl { top:0;    left:0;    border-top:3.5px solid #00C6A2; border-left:3.5px solid #00C6A2;  border-radius:4px 0 0 0; }
+.corner-tr { top:0;    right:0;   border-top:3.5px solid #00C6A2; border-right:3.5px solid #00C6A2; border-radius:0 4px 0 0; }
+.corner-bl { bottom:0; left:0;    border-bottom:3.5px solid #00C6A2; border-left:3.5px solid #00C6A2;  border-radius:0 0 0 4px; }
+.corner-br { bottom:0; right:0;   border-bottom:3.5px solid #00C6A2; border-right:3.5px solid #00C6A2; border-radius:0 0 4px 0; }
+
+/* Animated scan line */
+.scan-line {
+  position:absolute; left:10px; right:10px; height:2px;
+  background:linear-gradient(90deg,transparent,#00C6A2,#00C6A2,transparent);
+  border-radius:1px;
+  box-shadow:0 0 8px rgba(0,198,162,.7);
+  animation:scanMove 2s ease-in-out infinite;
+}
+@keyframes scanMove {
+  0%   { top:8px; }
+  50%  { top:244px; }
+  100% { top:8px; }
+}
+
+/* Top bar */
+.scan-bar {
+  position:fixed; top:0; left:0; right:0; z-index:20;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:48px 16px 14px;
+  background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);
+}
+.scan-bar-btn {
+  width:40px; height:40px; background:rgba(0,0,0,.5);
+  border-radius:12px; border:1px solid rgba(255,255,255,.2);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+
+/* Bottom instruction */
+.scan-bottom {
+  position:fixed; bottom:90px; left:0; right:0; z-index:20;
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+}
+.scan-hint {
+  background:rgba(0,0,0,.6); border:1px solid rgba(255,255,255,.1);
+  border-radius:12px; padding:10px 16px; display:flex; align-items:center; gap:8px;
+}
+
+/* Success overlay */
+.success-overlay {
+  position:fixed; inset:0; z-index:30; background:rgba(0,0,0,.85);
+  display:none; flex-direction:column; align-items:center; justify-content:center;
+  padding:40px;
+}
+.success-overlay.show { display:flex; }
+.success-circle {
+  width:90px; height:90px; border-radius:50%;
+  background:rgba(0,198,162,.15); border:2px solid rgba(0,198,162,.4);
+  display:flex; align-items:center; justify-content:center;
+  margin-bottom:20px;
+  animation:pop .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes pop { 0%{transform:scale(0)} 100%{transform:scale(1)} }
+</style>
+</head>
+<body>
+
+<!-- Camera -->
+<div id="reader"></div>
+
+<!-- Overlay with transparent scan box -->
+<div class="scan-overlay">
+  <div class="top-shade"></div>
+  <div class="middle-row">
+    <div class="side-shade"></div>
+    <div class="scan-frame">
+      <div class="corner corner-tl"></div>
+      <div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div>
+      <div class="corner corner-br"></div>
+      <div class="scan-line"></div>
+    </div>
+    <div class="side-shade"></div>
+  </div>
+  <div class="bottom-shade"></div>
+</div>
+
+<!-- Top bar -->
+<div class="scan-bar">
+  <a href="dashboard.html" class="scan-bar-btn">
+    <i class="material-icons" style="color:#fff;font-size:20px">arrow_back</i>
+  </a>
+  <span style="color:#fff;font-size:18px;font-weight:800">Scan Parking QR</span>
+  <div class="scan-bar-btn" id="torch-btn" onclick="toggleTorch()">
+    <i class="material-icons" id="torch-icon" style="color:#fff;font-size:20px">flashlight_off</i>
+  </div>
+</div>
+
+<!-- Bottom instruction -->
+<div class="scan-bottom">
+  <div class="scan-hint">
+    <i class="material-icons" style="color:rgba(255,255,255,.7);font-size:16px">qr_code_scanner</i>
+    <span style="color:rgba(255,255,255,.7);font-size:12px">Point at the parking gate QR code</span>
+  </div>
+</div>
+
+<!-- Success overlay -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-circle">
+    <i class="material-icons" style="color:#00C6A2;font-size:48px">check_circle</i>
+  </div>
+  <h2 style="color:#fff;margin-bottom:8px">QR Detected!</h2>
+  <div id="qr-result" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:12px 20px;margin-bottom:28px;color:rgba(255,255,255,.8);font-size:13px;text-align:center;max-width:300px;word-break:break-all"></div>
+  <div style="display:flex;gap:12px;width:100%;max-width:300px">
+    <button onclick="resetScanner()" style="flex:1;padding:13px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:100px;color:#fff;font-weight:700;font-size:14px;cursor:pointer">Scan Again</button>
+    <a href="dashboard.html" style="flex:1;padding:13px;background:#00C6A2;border-radius:100px;color:#000;font-weight:700;font-size:14px;text-align:center;text-decoration:none">Done</a>
+  </div>
+</div>
+
+<script>
+let scanner  = null;
+let torchOn  = false;
+let scanned  = false;
+let cameras  = [];
+
+async function startScanner() {
+  try {
+    scanner = new Html5Qrcode('reader');
+    const deviceList = await Html5Qrcode.getCameras();
+    cameras = deviceList;
+
+    // Prefer back camera
+    const cam = deviceList.find(c => c.label.toLowerCase().includes('back') || c.label.toLowerCase().includes('rear'))
+      || deviceList[deviceList.length - 1];
+
+    await scanner.start(
+      cam?.id || { facingMode: 'environment' },
+      {
+        fps: 10,
+        qrbox: { width: 260, height: 260 },
+        aspectRatio: window.innerHeight / window.innerWidth,
+      },
+      onScanSuccess,
+      () => {} // ignore errors
+    );
+  } catch(e) {
+    document.getElementById('reader').innerHTML =
+      `<div style="color:#fff;text-align:center;padding:60px 20px">
+        <i class="material-icons" style="font-size:48px;color:rgba(255,255,255,.3)">no_photography</i>
+        <p style="margin-top:12px;opacity:.7">Camera access denied.<br>Please allow camera permission.</p>
+        <a href="dashboard.html" style="display:inline-block;margin-top:20px;color:#00C6A2;font-weight:700">← Go Back</a>
+      </div>`;
+  }
+}
+
+function onScanSuccess(code) {
+  if (scanned) return;
+  scanned = true;
+  if (scanner) scanner.pause();
+  document.getElementById('qr-result').textContent = code;
+  document.getElementById('success-overlay').classList.add('show');
+}
+
+window.resetScanner = function() {
+  scanned = false;
+  document.getElementById('success-overlay').classList.remove('show');
+  if (scanner) scanner.resume();
+};
+
+window.toggleTorch = async function() {
+  if (!scanner) return;
+  torchOn = !torchOn;
+  try {
+    await scanner.applyVideoConstraints({ advanced: [{ torch: torchOn }] });
+    document.getElementById('torch-icon').textContent = torchOn ? 'flashlight_on' : 'flashlight_off';
+    document.getElementById('torch-btn').style.background = torchOn ? 'rgba(255,181,71,.3)' : 'rgba(0,0,0,.5)';
+    document.getElementById('torch-btn').style.borderColor = torchOn ? 'rgba(255,181,71,.5)' : 'rgba(255,255,255,.2)';
+  } catch(_) {}
+};
+
+// Stop scanner when navigating away
+window.addEventListener('beforeunload', () => {
+  if (scanner) scanner.stop().catch(()=>{});
+});
+
+startScanner();
+</script>
+</body>
+</html>

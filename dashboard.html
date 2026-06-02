@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>SmartPark — Home</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+.dash-appbar { display:flex;align-items:center;justify-content:space-between;padding:52px 20px 10px;background:#fff;position:sticky;top:0;z-index:50; }
+.dash-greeting { font-size:11px;color:var(--text-muted); }
+.dash-name { font-size:22px;font-weight:900;letter-spacing:-.5px;color:var(--text);margin-top:1px; }
+.notif-btn { width:42px;height:42px;background:var(--bg-card2);border:1px solid var(--border);border-radius:13px;display:flex;align-items:center;justify-content:center;position:relative;text-decoration:none; }
+.notif-dot { position:absolute;top:10px;right:10px;width:7px;height:7px;background:var(--red);border-radius:50%;border:1.5px solid #fff; }
+.location-bar { display:flex;align-items:center;gap:8px;background:var(--bg-card2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;cursor:pointer;margin:0 20px 12px;transition:border-color .2s; }
+.location-bar:hover { border-color:var(--primary); }
+.search-bar { display:flex;align-items:center;gap:10px;height:50px;background:var(--bg-card2);border:1.5px solid var(--border);border-radius:16px;margin:0 20px 18px;padding:0 14px;text-decoration:none;transition:border-color .2s; }
+.search-bar:hover { border-color:rgba(0,198,162,.4); }
+.banner { margin:0 20px 10px;border-radius:20px;overflow:hidden;position:relative;height:176px; }
+.banner-inner { display:flex;width:300%;transition:transform .5s ease; }
+.banner-slide { flex:0 0 33.333%;height:176px;padding:20px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden; }
+.banner-slide::before { content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.08); }
+.banner-s1 { background:linear-gradient(135deg,#00C6A2,#009E82); }
+.banner-s2 { background:linear-gradient(135deg,#3B82F6,#1D4ED8); }
+.banner-s3 { background:linear-gradient(135deg,#8B5CF6,#6D28D9); }
+.banner-h { color:#fff;font-size:20px;font-weight:900;letter-spacing:-.4px;margin-bottom:3px; }
+.banner-p { color:rgba(255,255,255,.8);font-size:12px; }
+.banner-dots { display:flex;gap:5px;justify-content:center;margin-bottom:16px; }
+.bdot { width:6px;height:6px;border-radius:100px;background:var(--border);transition:all .3s; }
+.bdot.active { width:20px;background:var(--primary); }
+@media(min-width:1024px){
+  .dash-appbar{display:none}
+  #lots-container{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .banner{margin:0 28px 10px}
+  .location-bar{margin:0 28px 12px}
+  .search-bar{margin:0 28px 18px}
+  .filter-chips{padding:0 28px 4px}
+  .section-header{padding:16px 28px 4px}
+  #lots-count{padding:0 28px 10px}
+  #lots-container{padding:0 28px}
+}
+</style>
+</head>
+<body>
+
+<!-- Desktop top bar (shown only on ≥1024px via CSS) -->
+<div class="desktop-topbar" id="desktop-topbar" style="display:none">
+  <div>
+    <div style="font-size:11px;color:var(--text-muted)" id="desktop-greeting">Good Morning ☀️</div>
+    <div style="font-size:20px;font-weight:900;letter-spacing:-.5px" id="desktop-name">...</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="location-bar" style="margin:0;width:220px" onclick="fetchLocation()">
+      <i class="material-icons" style="font-size:16px;color:var(--primary)">location_on</i>
+      <span style="flex:1;font-size:12px;font-weight:500;color:var(--text-sec)" id="desktop-loc">Guntur, AP</span>
+    </div>
+    <a href="notifications.html" class="notif-btn"><i class="material-icons" style="color:var(--text-sec);font-size:20px">notifications_none</i><div class="notif-dot"></div></a>
+  </div>
+</div>
+
+<!-- Mobile app bar -->
+<div class="dash-appbar">
+  <div>
+    <div class="dash-greeting" id="greeting-txt">Good Morning ☀️</div>
+    <div class="dash-name" id="user-name">...</div>
+  </div>
+  <a href="notifications.html" class="notif-btn">
+    <i class="material-icons" style="color:var(--text-sec);font-size:20px">notifications_none</i>
+    <div class="notif-dot"></div>
+  </a>
+</div>
+
+<div style="padding-bottom:calc(var(--nav-h)+20px)">
+
+  <!-- Location bar -->
+  <div class="location-bar" onclick="fetchLocation()">
+    <i class="material-icons" style="font-size:16px;color:var(--primary)">location_on</i>
+    <span class="location-txt" id="location-txt" style="flex:1;font-size:12px;font-weight:500;color:var(--text-sec)">Fetching location...</span>
+    <i class="material-icons" id="loc-icon" style="font-size:16px;color:var(--text-muted)">refresh</i>
+  </div>
+
+  <!-- Search bar -->
+  <a href="search.html" class="search-bar">
+    <i class="material-icons" style="color:var(--text-muted);font-size:20px">search</i>
+    <span style="flex:1;font-size:13px;color:var(--text-muted)">Where do you want to park?</span>
+    <div style="background:rgba(0,198,162,.12);padding:6px 10px;border-radius:9px"><i class="material-icons" style="font-size:15px;color:var(--primary)">mic</i></div>
+  </a>
+
+  <!-- Banner -->
+ <!-- Banner -->
+<div class="banner">
+  <div class="banner-inner" id="banner-inner">
+
+    <div class="banner-slide">
+      <img src="assets/images/1.jpeg" class="banner-img" alt="Parking 1">
+    </div>
+
+    <div class="banner-slide">
+      <img src="assets/images/2.jpeg" class="banner-img" alt="Parking 2">
+    </div>
+
+    <div class="banner-slide">
+      <img src="assets/images/3.jpeg" class="banner-img" alt="Parking 3">
+    </div>
+
+  </div>
+</div>
+
+<div class="banner-dots">
+  <div class="bdot active"></div>
+  <div class="bdot"></div>
+  <div class="bdot"></div>
+</div>
+
+  <!-- Filter chips -->
+  <div class="filter-chips" style="margin:12px 0 0">
+    <div class="chip active" data-filter="all">All</div>
+    <div class="chip" data-filter="covered">Covered</div>
+    <div class="chip" data-filter="ev">EV</div>
+    <div class="chip" data-filter="open24">24/7</div>
+    <div class="chip" data-filter="cheap">Cheap</div>
+    <div class="chip" data-filter="available">Available</div>
+  </div>
+
+  <!-- Section header -->
+  <div class="section-header" style="padding:16px 20px 4px">
+    <h3>Nearby Car Parking</h3>
+    <a href="search.html">View all</a>
+  </div>
+  <div id="lots-count" style="padding:0 20px 10px;font-size:11px;color:var(--text-muted)"></div>
+
+  <!-- Lot cards -->
+  <div id="lots-container" style="padding:0 20px">
+    <div style="text-align:center;padding:40px 0;grid-column:1/-1">
+      <div class="spinner spinner-primary" style="margin:0 auto 12px"></div>
+      <p style="font-size:13px">Finding parking near you...</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Mobile Bottom Nav -->
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="nav-item active"><div class="nav-icon"><i class="material-icons">home</i></div><span>Home</span></a>
+  <a href="map.html" class="nav-item"><div class="nav-icon"><i class="material-icons">map</i></div><span>Map</span></a>
+  <button class="nav-fab" onclick="location.href='qr-scanner.html'"><i class="material-icons">qr_code_scanner</i></button>
+  <a href="notifications.html" class="nav-item" style="position:relative">
+    <div class="nav-icon"><i class="material-icons">bookmark_border</i></div><span>Bookings</span>
+    <div style="position:absolute;top:6px;right:10px;width:15px;height:15px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:800">2</div>
+  </a>
+  <a href="profile.html" class="nav-item"><div class="nav-icon"><div class="nav-avatar-circle" id="nav-avatar">?</div></div><span>Profile</span></a>
+</nav>
+
+<script type="module">
+import { PARKING_LOTS, statusColor, statusLabel, occupancyPct, greeting, getUser, requireAuth } from './js/app.js';
+import { injectSidebar } from './js/sidebar.js';
+import { rtdb }     from './js/firebase-config.js';
+import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const user = requireAuth();
+if (!user) throw '';
+
+// Inject desktop sidebar
+injectSidebar('dashboard');
+
+// Names
+const g = greeting();
+const displayName = user.name || (user.phone||'').replace('+91','') || 'User';
+document.getElementById('greeting-txt').textContent  = g;
+document.getElementById('user-name').textContent     = displayName;
+document.getElementById('desktop-greeting').textContent = g;
+document.getElementById('desktop-name').textContent  = displayName;
+document.getElementById('nav-avatar').textContent    = displayName[0].toUpperCase();
+
+// Show desktop topbar via JS (can't use CSS display:flex in style.css for this)
+if (window.innerWidth >= 1024) {
+  document.getElementById('desktop-topbar').style.display = 'flex';
+}
+window.addEventListener('resize', () => {
+  document.getElementById('desktop-topbar').style.display =
+    window.innerWidth >= 1024 ? 'flex' : 'none';
+});
+
+// Location
+window.fetchLocation = function() {
+  const txt = document.getElementById('location-txt');
+  const ico = document.getElementById('loc-icon');
+  ico.style.animation = 'spin .8s linear infinite';
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      ico.style.animation = '';
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`)
+        .then(r=>r.json()).then(d=>{
+          const loc = `${d.address?.city||d.address?.town||'Guntur'}, ${d.address?.state||'AP'}`;
+          txt.textContent = loc;
+          if(document.getElementById('desktop-loc')) document.getElementById('desktop-loc').textContent = loc;
+        }).catch(()=>{ txt.textContent='Guntur, Andhra Pradesh'; });
+      ico.style.animation = '';
+    }, ()=>{ txt.textContent='Guntur, Andhra Pradesh'; ico.style.animation=''; });
+  } else { txt.textContent='Guntur, Andhra Pradesh'; ico.style.animation=''; }
+};
+fetchLocation();
+
+// Lot card HTML
+function lotCardHTML(lot) {
+  const col = statusColor(lot);
+  const lbl = statusLabel(lot);
+  const pct = occupancyPct(lot);
+  const tags = lot.features.slice(0,3).map(f=>`<span class="feature-tag">${f}</span>`).join('');
+  return `
+  <div class="lot-card">
+    <div class="lot-card-body">
+      <div class="lot-card-top">
+        <div class="lot-icon" style="background:${col}18;border:1px solid ${col}28">
+          <i class="material-icons" style="color:${col};font-size:22px">local_parking</i>
+        </div>
+        <div class="lot-info">
+          <div class="lot-name">${lot.name}</div>
+          <div class="lot-address"><i class="material-icons" style="font-size:11px">location_on</i>${lot.address}</div>
+          <div class="lot-meta"><i class="material-icons" style="font-size:12px">star</i>${lot.rating} <span>•</span> ${lot.available} of ${lot.total} free</div>
+        </div>
+        <div class="lot-price-col">
+          <span class="lot-price">${lot.price}</span>
+          <span class="badge" style="background:${col}18;color:${col};border:1px solid ${col}28">${lbl}</span>
+        </div>
+      </div>
+      <div class="lot-features">${tags}</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${col}"></div></div>
+    </div>
+    <div class="lot-bottom" style="border-top:1px solid var(--border);margin-top:10px;padding:10px 16px 12px">
+      <span class="lot-slots-txt">${lot.available} of ${lot.total} free</span>
+      ${lot.available>0
+        ? `<button class="btn btn-primary btn-sm" style="color:#000">Book Now</button>`
+        : `<span class="badge" style="background:rgba(255,92,92,.1);color:var(--red);border:1px solid rgba(255,92,92,.2)">Full</span>`}
+    </div>
+  </div>`;
+}
+
+let allLots = [...PARKING_LOTS];
+let activeFilter = 'all';
+
+function renderLots() {
+  let lots = allLots;
+  if (activeFilter==='covered')  lots=lots.filter(l=>l.covered);
+  else if(activeFilter==='ev')   lots=lots.filter(l=>l.ev);
+  else if(activeFilter==='open24')lots=lots.filter(l=>l.open24);
+  else if(activeFilter==='cheap')lots=lots.filter(l=>parseInt(l.price)<=15);
+  else if(activeFilter==='available')lots=lots.filter(l=>l.available>0);
+  const c=document.getElementById('lots-container');
+  c.innerHTML=lots.length ? lots.map(l=>lotCardHTML(l)).join('') : `<div style="text-align:center;padding:40px;grid-column:1/-1"><i class="material-icons" style="font-size:48px;color:var(--border)">local_parking</i><p>No parking found</p></div>`;
+  document.getElementById('lots-count').textContent=`${lots.length} spots near you`;
+  c.querySelectorAll('.lot-card').forEach((card,i)=>{
+    card.onclick=()=>{ sessionStorage.setItem('sp_selected_lot',JSON.stringify(lots[i])); location.href='booking.html'; };
+  });
+}
+
+const lotsRef=ref(rtdb,'smartpark/parking_lots');
+onValue(lotsRef,snap=>{
+  const fb=snap.val()||{};
+  allLots=PARKING_LOTS.map(l=>({...l,available:fb[l.id]?.available??l.available}));
+  renderLots();
+},()=>renderLots());
+
+document.querySelectorAll('.chip').forEach(chip=>{
+  chip.onclick=()=>{
+    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active'); activeFilter=chip.dataset.filter; renderLots();
+  };
+});
+
+let bi=0;
+setInterval(()=>{
+  bi=(bi+1)%3;
+  document.getElementById('banner-inner').style.transform=`translateX(-${bi*33.333}%)`;
+  document.querySelectorAll('.bdot').forEach((d,i)=>d.classList.toggle('active',i===bi));
+},3200);
+
+const s=document.createElement('style');
+s.textContent='@keyframes spin{to{transform:rotate(360deg)}}';
+document.head.appendChild(s);
+</script>
+</body>
+</html>

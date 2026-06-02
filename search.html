@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>SmartPark — Search</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="app-bar" style="padding-top:52px;flex-direction:column;align-items:stretch;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="dashboard.html" style="width:36px;height:36px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center">
+        <i class="material-icons" style="font-size:20px;color:var(--text-sec)">arrow_back</i>
+      </a>
+      <div class="input-wrap" style="flex:1">
+        <i class="material-icons inp-icon">search</i>
+        <input type="text" id="search-input" placeholder="Search parking..." autofocus oninput="filterSearch(this.value)">
+      </div>
+    </div>
+    <!-- Filter row -->
+    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px" id="search-filters">
+      <div class="chip active" data-f="all">All</div>
+      <div class="chip" data-f="covered">Covered</div>
+      <div class="chip" data-f="ev">EV Charging</div>
+      <div class="chip" data-f="open24">24/7 Open</div>
+      <div class="chip" data-f="cheap">Under ₹15</div>
+      <div class="chip" data-f="available">Available</div>
+    </div>
+  </div>
+
+  <!-- Sort bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 8px">
+    <span style="font-size:11px;color:var(--text-muted)" id="result-count">6 results</span>
+    <select id="sort-select" onchange="sortResults(this.value)" style="font-size:12px;color:var(--text-sec);background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;outline:none">
+      <option value="distance">Nearest first</option>
+      <option value="price">Cheapest first</option>
+      <option value="rating">Top rated</option>
+      <option value="available">Most available</option>
+    </select>
+  </div>
+
+  <!-- Results -->
+  <div style="padding:0 20px" id="search-results"></div>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="nav-item">
+    <div class="nav-icon"><i class="material-icons">home</i></div><span>Home</span>
+  </a>
+  <a href="map.html" class="nav-item">
+    <div class="nav-icon"><i class="material-icons">map</i></div><span>Map</span>
+  </a>
+  <button class="nav-fab" onclick="location.href='qr-scanner.html'">
+    <i class="material-icons">qr_code_scanner</i>
+  </button>
+  <a href="notifications.html" class="nav-item">
+    <div class="nav-icon"><i class="material-icons">bookmark_border</i></div><span>Bookings</span>
+  </a>
+  <a href="profile.html" class="nav-item">
+    <div class="nav-icon"><div class="nav-avatar-circle" id="nav-avatar">?</div></div><span>Profile</span>
+  </a>
+</nav>
+
+<script type="module">
+import { PARKING_LOTS, statusColor, statusLabel, getUser } from './js/app.js';
+import { lotCardHTML } from './js/dashboard.js';
+
+const user = getUser();
+if (user?.name) document.getElementById('nav-avatar').textContent = user.name[0].toUpperCase();
+
+let currentFilter = 'all';
+let currentSort   = 'distance';
+let currentQuery  = '';
+
+function render() {
+  let lots = [...PARKING_LOTS];
+
+  // Query filter
+  if (currentQuery) {
+    lots = lots.filter(l =>
+      l.name.toLowerCase().includes(currentQuery) ||
+      l.address.toLowerCase().includes(currentQuery));
+  }
+
+  // Category filter
+  if (currentFilter === 'covered')   lots = lots.filter(l => l.covered);
+  if (currentFilter === 'ev')        lots = lots.filter(l => l.ev);
+  if (currentFilter === 'open24')    lots = lots.filter(l => l.open24);
+  if (currentFilter === 'cheap')     lots = lots.filter(l => parseInt(l.price) <= 15);
+  if (currentFilter === 'available') lots = lots.filter(l => l.available > 0);
+
+  // Sort
+  if (currentSort === 'price')     lots.sort((a,b) => parseInt(a.price) - parseInt(b.price));
+  if (currentSort === 'rating')    lots.sort((a,b) => b.rating - a.rating);
+  if (currentSort === 'available') lots.sort((a,b) => b.available - a.available);
+
+  document.getElementById('result-count').textContent = `${lots.length} result${lots.length!==1?'s':''}`;
+  document.getElementById('search-results').innerHTML = lots.length
+    ? lots.map(l => lotCardHTML(l)).join('')
+    : `<div style="text-align:center;padding:40px 0"><i class="material-icons" style="font-size:48px;color:var(--border)">search_off</i><p style="margin-top:12px">No parking found</p></div>`;
+
+  // Click handlers
+  document.querySelectorAll('.lot-card').forEach((card, i) => {
+    card.onclick = () => {
+      sessionStorage.setItem('sp_selected_lot', JSON.stringify(lots[i]));
+      window.location.href = 'booking.html';
+    };
+  });
+}
+
+window.filterSearch = (q) => { currentQuery = q.toLowerCase(); render(); };
+window.sortResults  = (s) => { currentSort = s; render(); };
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.onclick = () => {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    currentFilter = chip.dataset.f;
+    render();
+  };
+});
+
+render();
+</script>
+</body>
+</html>

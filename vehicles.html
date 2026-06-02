@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>SmartPark — My Vehicles</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+<div class="page">
+  <div class="app-bar" style="padding-top:48px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="profile.html" style="width:36px;height:36px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center">
+        <i class="material-icons" style="font-size:20px">arrow_back</i>
+      </a>
+      <h2>My Vehicles</h2>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="showAddCar()"><i class="material-icons" style="font-size:16px">add</i> Add Car</button>
+  </div>
+
+  <div style="padding:16px 20px" id="vehicles-list"></div>
+</div>
+
+<!-- Add Vehicle Modal -->
+<div class="modal-backdrop" id="add-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <h3 style="margin-bottom:20px">Add Vehicle</h3>
+    <label class="input-label">Car Brand / Model</label>
+    <div class="input-wrap" style="margin-bottom:14px">
+      <i class="material-icons inp-icon">directions_car</i>
+      <input type="text" id="car-brand" placeholder="e.g. Honda City">
+    </div>
+    <label class="input-label">Number Plate</label>
+    <div class="plate-wrap" style="margin-bottom:14px">
+      <div class="plate-prefix"><span>🇮🇳</span><span>IN</span></div>
+      <input type="text" id="car-plate" placeholder="TG 09 AB 1234" style="letter-spacing:2px;font-weight:800;text-transform:uppercase">
+    </div>
+    <label class="input-label">Color</label>
+    <div class="input-wrap" style="margin-bottom:24px">
+      <i class="material-icons inp-icon">palette</i>
+      <input type="text" id="car-color" placeholder="e.g. White">
+    </div>
+    <div style="display:flex;gap:12px">
+      <button class="btn btn-ghost btn-full" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-primary btn-full" onclick="addCar()">Add Vehicle</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let vehicles = JSON.parse(localStorage.getItem('sp_vehicles') || '[{"brand":"Honda City","plate":"TG 09 AB 1234","color":"White","isDefault":true},{"brand":"Maruti Swift","plate":"TG 09 CD 5678","color":"Red","isDefault":false}]');
+
+function render() {
+  document.getElementById('vehicles-list').innerHTML = vehicles.length
+    ? vehicles.map((v,i) => `
+      <div style="display:flex;align-items:center;gap:14px;background:var(--bg-card);border:${v.isDefault?'1.5px solid rgba(0,198,162,.35)':'1px solid var(--border)'};border-radius:18px;padding:16px;margin-bottom:12px">
+        <div style="width:50px;height:50px;border-radius:14px;background:rgba(0,198,162,.1);border:1px solid rgba(0,198,162,.2);display:flex;align-items:center;justify-content:center">
+          <i class="material-icons" style="color:var(--primary);font-size:26px">directions_car_filled</i>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700">${v.brand}</div>
+          <div style="font-size:13px;font-weight:800;color:var(--primary);letter-spacing:1.5px;margin:2px 0">${v.plate}</div>
+          <div style="font-size:11px;color:var(--text-muted)">${v.color}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+          ${v.isDefault ? '<span style="font-size:10px;font-weight:700;color:var(--primary);background:rgba(0,198,162,.1);border:1px solid rgba(0,198,162,.2);padding:2px 8px;border-radius:100px">Default</span>' : `<button onclick="setDefault(${i})" style="font-size:10px;color:var(--text-muted);border:1px solid var(--border);background:var(--bg-card2);padding:3px 8px;border-radius:100px;cursor:pointer">Set default</button>`}
+          <button onclick="deleteCar(${i})" style="background:rgba(255,92,92,.08);border:1px solid rgba(255,92,92,.2);color:var(--red);padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer"><i class="material-icons" style="font-size:14px;vertical-align:middle">delete</i></button>
+        </div>
+      </div>`)
+    .join('')
+    : '<div style="text-align:center;padding:40px"><i class="material-icons" style="font-size:48px;color:var(--border)">directions_car</i><p style="margin-top:12px">No vehicles added</p></div>';
+}
+
+window.showAddCar = () => document.getElementById('add-modal').classList.add('open');
+window.closeAddModal = () => document.getElementById('add-modal').classList.remove('open');
+window.setDefault = i => { vehicles.forEach((v,j) => v.isDefault = j===i); save(); };
+window.deleteCar  = i => { if(confirm('Remove this vehicle?')) { vehicles.splice(i,1); save(); } };
+window.addCar = () => {
+  const brand = document.getElementById('car-brand').value.trim();
+  const plate = document.getElementById('car-plate').value.trim().toUpperCase();
+  const color = document.getElementById('car-color').value.trim();
+  if (!brand || !plate) { alert('Enter brand and plate number'); return; }
+  vehicles.push({ brand, plate, color, isDefault: vehicles.length === 0 });
+  save(); closeAddModal();
+};
+function save() { localStorage.setItem('sp_vehicles', JSON.stringify(vehicles)); render(); }
+document.getElementById('add-modal').addEventListener('click', e => { if(e.target===document.getElementById('add-modal')) closeAddModal(); });
+render();
+</script>
+</body>
+</html>

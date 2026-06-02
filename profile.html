@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>SmartPark — Profile</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+<div style="padding-bottom:calc(var(--nav-h)+20px)">
+
+  <!-- App bar -->
+  <div class="app-bar">
+    <h2>Profile</h2>
+    <div style="display:flex;gap:8px">
+      <a href="notifications.html" style="width:38px;height:38px;background:var(--bg-card2);border:1px solid var(--border);border-radius:11px;display:flex;align-items:center;justify-content:center;text-decoration:none">
+        <i class="material-icons" style="font-size:20px;color:var(--text-sec)">notifications_none</i>
+      </a>
+      <a href="settings.html" style="width:38px;height:38px;background:var(--bg-card2);border:1px solid var(--border);border-radius:11px;display:flex;align-items:center;justify-content:center;text-decoration:none">
+        <i class="material-icons" style="font-size:20px;color:var(--text-sec)">settings</i>
+      </a>
+    </div>
+  </div>
+
+  <div style="padding:8px 16px 0">
+
+    <!-- Avatar card -->
+    <div class="card" style="display:flex;align-items:center;gap:16px;margin-bottom:14px">
+      <div class="avatar" id="profile-avatar">?</div>
+      <div style="flex:1;min-width:0">
+        <div id="profile-name" style="font-size:18px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Loading...</div>
+        <div id="profile-phone" style="font-size:12px;color:var(--text-muted);margin-top:2px"></div>
+        <div id="profile-email" style="font-size:11px;color:var(--text-muted)"></div>
+        <div style="display:flex;gap:8px;margin-top:7px">
+          <span class="badge" style="background:rgba(0,198,162,.1);color:var(--primary);border:1px solid rgba(0,198,162,.2)">✓ Verified</span>
+          <span class="badge" style="background:rgba(255,181,71,.1);color:var(--amber);border:1px solid rgba(255,181,71,.2)">⭐ Premium</span>
+        </div>
+      </div>
+      <a href="settings.html" style="width:34px;height:34px;background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none">
+        <i class="material-icons" style="font-size:16px;color:var(--text-sec)">edit</i>
+      </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid" style="margin-bottom:18px">
+      <div class="stat-box"><div class="stat-val">12</div><div class="stat-lbl">Bookings</div></div>
+      <div class="stat-box"><div class="stat-val">₹648</div><div class="stat-lbl">Spent</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--amber)">4.8★</div><div class="stat-lbl">Rating</div></div>
+      <div class="stat-box"><div class="stat-val">2</div><div class="stat-lbl">Vehicles</div></div>
+    </div>
+
+    <!-- Emergency SOS -->
+    <div class="sos-bar" onclick="alert('Calling 112...')" style="margin-bottom:18px">
+      <div class="sos-icon"><i class="material-icons">sos</i></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--red)">Emergency SOS</div>
+        <div style="font-size:11px;color:var(--text-muted)">Tap to call 112 or nearest service</div>
+      </div>
+      <i class="material-icons" style="color:var(--red)">chevron_right</i>
+    </div>
+
+    <!-- Quick tiles -->
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;margin-bottom:10px">MANAGE</div>
+    <div class="quick-tiles" style="margin-bottom:20px">
+      <a href="vehicles.html" class="quick-tile" style="background:rgba(0,198,162,.08);border-color:rgba(0,198,162,.2);color:var(--primary)">
+        <i class="material-icons">directions_car</i><span>Vehicles</span>
+      </a>
+      <a href="notifications.html" class="quick-tile" style="background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.2);color:var(--blue)">
+        <i class="material-icons">payment</i><span>Payments</span>
+      </a>
+      <a href="documents.html" class="quick-tile" style="background:rgba(255,181,71,.08);border-color:rgba(255,181,71,.2);color:var(--amber)">
+        <i class="material-icons">folder</i><span>Docs</span>
+      </a>
+      <div class="quick-tile" style="background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.2);color:var(--purple)" onclick="showLanguagePicker()">
+        <i class="material-icons">language</i><span>Language</span>
+      </div>
+    </div>
+
+    <!-- Account menu -->
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;margin-bottom:10px">ACCOUNT</div>
+    <div class="card" style="margin-bottom:14px;padding:0 16px">
+      <a href="vehicles.html" class="menu-item" style="text-decoration:none">
+        <div class="menu-icon" style="background:rgba(0,198,162,.08)"><i class="material-icons" style="color:var(--primary)">directions_car</i></div>
+        <div class="menu-info"><div class="menu-lbl">My Vehicles</div><div class="menu-sub">2 vehicles</div></div>
+        <i class="material-icons menu-arrow">chevron_right</i>
+      </a>
+      <a href="documents.html" class="menu-item" style="text-decoration:none">
+        <div class="menu-icon" style="background:rgba(255,181,71,.08)"><i class="material-icons" style="color:var(--amber)">folder</i></div>
+        <div class="menu-info"><div class="menu-lbl">My Documents</div><div class="menu-sub">Licence, RC, Insurance, PUC</div></div>
+        <i class="material-icons menu-arrow">chevron_right</i>
+      </a>
+      <div class="menu-item" onclick="showLanguagePicker()">
+        <div class="menu-icon" style="background:rgba(139,92,246,.08)"><i class="material-icons" style="color:var(--purple)">language</i></div>
+        <div class="menu-info"><div class="menu-lbl">Language</div><div class="menu-sub" id="current-lang">English</div></div>
+        <i class="material-icons menu-arrow">chevron_right</i>
+      </div>
+      <a href="notifications.html" class="menu-item" style="text-decoration:none">
+        <div class="menu-icon" style="background:rgba(59,130,246,.08)"><i class="material-icons" style="color:var(--blue)">notifications</i></div>
+        <div class="menu-info"><div class="menu-lbl">Notifications</div></div>
+        <i class="material-icons menu-arrow">chevron_right</i>
+      </a>
+      <a href="settings.html" class="menu-item" style="text-decoration:none">
+        <div class="menu-icon" style="background:rgba(0,0,0,.04)"><i class="material-icons" style="color:var(--text-sec)">settings</i></div>
+        <div class="menu-info"><div class="menu-lbl">Settings</div></div>
+        <i class="material-icons menu-arrow">chevron_right</i>
+      </a>
+    </div>
+
+    <div class="card" style="margin-bottom:24px;padding:0 16px">
+      <div class="menu-item" onclick="handleSignOut()">
+        <div class="menu-icon" style="background:rgba(255,92,92,.08)"><i class="material-icons" style="color:var(--red)">logout</i></div>
+        <div class="menu-info"><div class="menu-lbl" style="color:var(--red)">Sign Out</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Language modal -->
+<div class="modal-backdrop" id="lang-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <h3 style="text-align:center;margin-bottom:20px">Select Language</h3>
+    <div id="lang-options"></div>
+  </div>
+</div>
+
+<!-- Sign out confirm -->
+<div class="modal-backdrop" id="signout-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <h3 style="margin-bottom:8px">Sign Out?</h3>
+    <p style="margin-bottom:24px">Are you sure you want to sign out?</p>
+    <div style="display:flex;gap:12px">
+      <button class="btn btn-ghost btn-full" onclick="closeModal('signout-modal')">Cancel</button>
+      <button class="btn btn-full" style="background:var(--red);color:#fff" onclick="confirmSignOut()">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="nav-item"><div class="nav-icon"><i class="material-icons">home</i></div><span>Home</span></a>
+  <a href="map.html" class="nav-item"><div class="nav-icon"><i class="material-icons">map</i></div><span>Map</span></a>
+  <button class="nav-fab" onclick="location.href='qr-scanner.html'"><i class="material-icons">qr_code_scanner</i></button>
+  <a href="notifications.html" class="nav-item"><div class="nav-icon"><i class="material-icons">bookmark_border</i></div><span>Bookings</span></a>
+  <a href="profile.html" class="nav-item active">
+    <div class="nav-icon"><div class="nav-avatar-circle" id="nav-avatar">?</div></div>
+    <span>Profile</span>
+  </a>
+</nav>
+
+<script type="module">
+import { getUser, signOut } from './js/app.js';
+import { injectSidebar } from './js/sidebar.js';
+import { db }  from './js/firebase-config.js';
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const user = getUser();
+injectSidebar('profile');
+if (!user) { window.location.href='login.html'; }
+
+async function loadProfile() {
+  let name  = user.name  || '';
+  let email = user.email || '';
+  if (!name && user.uid) {
+    try {
+      const snap = await getDoc(doc(db,'users',user.uid));
+      if (snap.exists()) { name=snap.data().name||''; email=snap.data().email||''; }
+    } catch(_) {}
+  }
+  if (!name) name = (user.phone||'').replace('+91','');
+  const init = name ? name.trim()[0].toUpperCase() : '?';
+
+  document.getElementById('profile-avatar').textContent = init;
+  document.getElementById('nav-avatar').textContent     = init;
+  document.getElementById('profile-name').textContent   = name || 'SmartPark User';
+  document.getElementById('profile-phone').textContent  = user.phone || '';
+  if (email) document.getElementById('profile-email').textContent = email;
+}
+loadProfile();
+
+const LANGS = [{code:'en',name:'English',flag:'🇬🇧'},{code:'te',name:'తెలుగు',flag:'🏳️'},{code:'hi',name:'हिन्दी',flag:'🇮🇳'}];
+let lang = localStorage.getItem('sp_lang')||'en';
+document.getElementById('current-lang').textContent = LANGS.find(l=>l.code===lang)?.name||'English';
+
+window.showLanguagePicker = () => {
+  document.getElementById('lang-options').innerHTML = LANGS.map(l=>`
+    <div onclick="selectLang('${l.code}')" style="display:flex;align-items:center;gap:14px;padding:14px;background:${lang===l.code?'rgba(0,198,162,.08)':'var(--bg-card2)'};border:${lang===l.code?'1.5px solid rgba(0,198,162,.35)':'1px solid var(--border)'};border-radius:12px;margin-bottom:10px;cursor:pointer">
+      <span style="font-size:22px">${l.flag}</span>
+      <span style="font-size:15px;font-weight:600;color:${lang===l.code?'var(--primary)':'var(--text)'}">${l.name}</span>
+      ${lang===l.code?'<i class="material-icons" style="margin-left:auto;color:var(--primary)">check_circle</i>':''}
+    </div>`).join('');
+  document.getElementById('lang-modal').classList.add('open');
+};
+window.selectLang = (c) => {
+  lang=c; localStorage.setItem('sp_lang',c);
+  document.getElementById('current-lang').textContent = LANGS.find(l=>l.code===c)?.name;
+  closeModal('lang-modal');
+};
+window.closeModal = (id) => document.getElementById(id).classList.remove('open');
+window.handleSignOut = () => document.getElementById('signout-modal').classList.add('open');
+window.confirmSignOut = () => { signOut(); };
+document.querySelectorAll('.modal-backdrop').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+</script>
+</body>
+</html>

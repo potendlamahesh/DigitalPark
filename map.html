@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>SmartPark — Map</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+.map-search { position:absolute; top:14px; left:14px; right:14px; z-index:10; }
+.map-search input { width:100%; padding:13px 14px 13px 44px; border-radius:14px; border:1px solid var(--border); background:#fff; font-size:13px; box-shadow:0 4px 20px rgba(0,0,0,.08); outline:none; }
+.map-fab-col { position:absolute; right:14px; top:80px; display:flex; flex-direction:column; gap:8px; z-index:10; }
+.map-fab-btn { width:42px; height:42px; background:#fff; border-radius:12px; border:1px solid var(--border); box-shadow:0 3px 10px rgba(0,0,0,.1); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.map-fab-btn.active { background:rgba(0,198,162,.12); border-color:rgba(0,198,162,.4); }
+.map-cards { position:absolute; bottom:80px; left:0; right:0; z-index:10; overflow-x:auto; display:flex; gap:10px; padding:0 14px; }
+.map-cards::-webkit-scrollbar { display:none; }
+.filter-chips-map { position:absolute; top:70px; left:14px; right:60px; display:flex; gap:7px; overflow-x:auto; z-index:10; }
+.filter-chips-map::-webkit-scrollbar { display:none; }
+.chip-map { flex-shrink:0; padding:6px 14px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer; border:1px solid rgba(226,232,240,.8); background:rgba(255,255,255,.92); color:var(--text-sec); backdrop-filter:blur(8px); transition:all .18s; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+.chip-map.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+#google-map { width:100%; height:100%; }
+</style>
+</head>
+<body>
+
+<div style="position:relative;height:100vh;overflow:hidden">
+
+  <!-- Search bar overlay -->
+  <div class="map-search">
+    <i class="material-icons" style="position:absolute;left:30px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:18px;pointer-events:none">search</i>
+    <input type="text" placeholder="Search parking on map..." id="map-search-input">
+    <div style="position:absolute;right:28px;top:50%;transform:translateY(-50%);background:var(--primary);padding:7px;border-radius:9px;cursor:pointer">
+      <i class="material-icons" style="font-size:14px;color:#000">tune</i>
+    </div>
+  </div>
+
+  <!-- Filter chips -->
+  <div class="filter-chips-map" style="top:75px">
+    <div class="chip-map active">All</div>
+    <div class="chip-map">Nearby</div>
+    <div class="chip-map">Covered</div>
+    <div class="chip-map">EV</div>
+    <div class="chip-map">24/7</div>
+  </div>
+
+  <!-- Map FABs -->
+  <div class="map-fab-col">
+    <div class="map-fab-btn" id="fab-heatmap" title="Heatmap" onclick="toggleHeatmap()">
+      <i class="material-icons" style="font-size:18px;color:var(--text-sec)">layers</i>
+    </div>
+    <div class="map-fab-btn" id="fab-traffic" title="Traffic" onclick="toggleTraffic()">
+      <i class="material-icons" style="font-size:18px;color:var(--text-sec)">traffic</i>
+    </div>
+    <div class="map-fab-btn" title="My Location" onclick="goToMyLocation()">
+      <i class="material-icons" style="font-size:18px;color:var(--text-sec)">my_location</i>
+    </div>
+    <div class="map-fab-btn" title="Zoom In" onclick="zoomIn()">
+      <i class="material-icons" style="font-size:18px;color:var(--text-sec)">add</i>
+    </div>
+    <div class="map-fab-btn" title="Zoom Out" onclick="zoomOut()">
+      <i class="material-icons" style="font-size:18px;color:var(--text-sec)">remove</i>
+    </div>
+  </div>
+
+  <!-- Map -->
+  <div id="google-map"></div>
+
+  <!-- Bottom lot cards -->
+  <div class="map-cards" id="map-lot-cards"></div>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="nav-item">
+    <div class="nav-icon"><i class="material-icons">home</i></div>
+    <span>Home</span>
+  </a>
+  <a href="map.html" class="nav-item active">
+    <div class="nav-icon"><i class="material-icons">map</i></div>
+    <span>Map</span>
+  </a>
+  <button class="nav-fab" onclick="location.href='qr-scanner.html'">
+    <i class="material-icons">qr_code_scanner</i>
+  </button>
+  <a href="notifications.html" class="nav-item">
+    <div class="nav-icon"><i class="material-icons">bookmark_border</i></div>
+    <span>Bookings</span>
+  </a>
+  <a href="profile.html" class="nav-item">
+    <div class="nav-icon"><div class="nav-avatar-circle" id="nav-avatar">?</div></div>
+    <span>Profile</span>
+  </a>
+</nav>
+
+<script type="module">
+import { initMap } from './js/map.js';
+import { getUser } from './js/app.js';
+const user = getUser();
+if (user?.name) document.getElementById('nav-avatar').textContent = user.name[0].toUpperCase();
+initMap();
+
+let trafficLayer, heatmapOn = false, trafficOn = false;
+
+window.toggleHeatmap = () => {
+  heatmapOn = !heatmapOn;
+  document.getElementById('fab-heatmap').classList.toggle('active', heatmapOn);
+};
+window.toggleTraffic = () => {
+  trafficOn = !trafficOn;
+  document.getElementById('fab-traffic').classList.toggle('active', trafficOn);
+  if (window.map) {
+    if (!trafficLayer) trafficLayer = new google.maps.TrafficLayer();
+    trafficLayer.setMap(trafficOn ? window.map : null);
+  }
+};
+window.goToMyLocation = () => {
+  if (navigator.geolocation && window.map) {
+    navigator.geolocation.getCurrentPosition(pos =>
+      window.map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude }));
+  }
+};
+window.zoomIn  = () => window.map && window.map.setZoom(window.map.getZoom() + 1);
+window.zoomOut = () => window.map && window.map.setZoom(window.map.getZoom() - 1);
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>SmartPark — Bookings & Notifications</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+.tab-bar { display:flex; border-bottom:1px solid var(--border); margin:0 20px; }
+.tab { flex:1; padding:12px 0; text-align:center; font-size:13px; font-weight:600; color:var(--text-muted); cursor:pointer; border-bottom:2px solid transparent; transition:all .2s; }
+.tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+.notif-item { display:flex; gap:12px; padding:14px 20px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .15s; }
+.notif-item:hover { background:var(--bg-card2); }
+.notif-item.unread { background:rgba(0,198,162,.03); }
+.notif-dot { width:8px; height:8px; border-radius:50%; background:var(--primary); flex-shrink:0; margin-top:6px; }
+.notif-dot.read { background:transparent; }
+.notif-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="app-bar" style="padding-top:48px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="dashboard.html" style="width:36px;height:36px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center">
+        <i class="material-icons" style="font-size:20px">arrow_back</i>
+      </a>
+      <h2>Bookings & Alerts</h2>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <div class="tab active" onclick="showTab('bookings',this)">My Bookings</div>
+    <div class="tab" onclick="showTab('notifications',this)">Notifications</div>
+  </div>
+
+  <!-- Bookings tab -->
+  <div id="tab-bookings">
+    <div style="display:flex;border-bottom:1px solid var(--border);padding:0 20px;gap:0">
+      <div class="tab active" onclick="showBookingTab('active',this)" style="flex:1;border-bottom-color:var(--primary)">Active</div>
+      <div class="tab" onclick="showBookingTab('upcoming',this)" style="flex:1">Upcoming</div>
+      <div class="tab" onclick="showBookingTab('history',this)" style="flex:1">History</div>
+    </div>
+    <div id="booking-content" style="padding:16px 20px"></div>
+  </div>
+
+  <!-- Notifications tab -->
+  <div id="tab-notifications" class="hidden">
+    <div id="notif-list"></div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="nav-item"><div class="nav-icon"><i class="material-icons">home</i></div><span>Home</span></a>
+  <a href="map.html" class="nav-item"><div class="nav-icon"><i class="material-icons">map</i></div><span>Map</span></a>
+  <button class="nav-fab" onclick="location.href='qr-scanner.html'"><i class="material-icons">qr_code_scanner</i></button>
+  <a href="notifications.html" class="nav-item active"><div class="nav-icon"><i class="material-icons">bookmark</i></div><span>Bookings</span></a>
+  <a href="profile.html" class="nav-item"><div class="nav-icon"><div class="nav-avatar-circle" id="nav-avatar">?</div></div><span>Profile</span></a>
+</nav>
+
+<script type="module">
+import { getUser } from './js/app.js';
+import { injectSidebar } from './js/sidebar.js';
+const user = getUser();
+if (user?.name) document.getElementById('nav-avatar').textContent = user.name[0].toUpperCase();
+
+const BOOKINGS = {
+  active: [{name:'City Mall Parking',slot:'Floor 1 – B03',time:'10:00 AM – 12:00 PM',date:'Today',amount:'₹49.56',status:'Active',remaining:'00:42:18',vehicle:'🚗 TG 09 AB 1234'}],
+  upcoming: [
+    {name:'Tech Park Tower B',slot:'Floor 2 – A04',time:'02:00 PM – 05:00 PM',date:'Tomorrow',amount:'₹75.00',status:'Confirmed',vehicle:'🚗 TG 09 AB 1234'},
+    {name:'Railway Station Lot',slot:'Ground – C02',time:'09:00 AM – 10:00 AM',date:'15 May',amount:'₹15.00',status:'Confirmed',vehicle:'🚗 TG 09 AB 1234'},
+  ],
+  history: [
+    {name:'City Centre Parking',slot:'Floor 1 – A01',time:'11:00 AM – 02:00 PM',date:'10 May',amount:'₹90.00',status:'Completed',vehicle:'🚗 TG 09 AB 1234'},
+    {name:'City Mall Parking',slot:'Ground – D05',time:'03:00 PM – 04:00 PM',date:'08 May',amount:'₹22.00',status:'Completed',vehicle:'🚗 TG 09 AB 1234'},
+    {name:'Govt Plaza',slot:'Ground – B02',time:'10:00 AM – 11:00 AM',date:'05 May',amount:'₹12.00',status:'Cancelled',vehicle:'🚗 TG 09 AB 1234'},
+  ],
+};
+
+const STATUS_COLOR = {Active:'#00C6A2',Confirmed:'#3B82F6',Completed:'#9BAAB8',Cancelled:'#FF5C5C'};
+
+let currentBookingTab = 'active';
+
+window.showBookingTab = (tab, el) => {
+  currentBookingTab = tab;
+  document.querySelectorAll('#tab-bookings .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderBookings();
+};
+
+function renderBookings() {
+  const list = BOOKINGS[currentBookingTab];
+  const container = document.getElementById('booking-content');
+  if (!list.length) { container.innerHTML = '<div style="text-align:center;padding:40px"><i class="material-icons" style="font-size:48px;color:var(--border)">bookmark_border</i><p style="margin-top:12px">No bookings</p></div>'; return; }
+  container.innerHTML = list.map(b => {
+    const col = STATUS_COLOR[b.status] || '#9BAAB8';
+    const active = b.status === 'Active';
+    return `
+    <div class="booking-card${active?' active-booking':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+        <span class="booking-name">${b.name}</span>
+        <span class="badge" style="background:${col}18;color:${col};border:1px solid ${col}30">${b.status}</span>
+      </div>
+      <div class="booking-meta"><i class="material-icons" style="font-size:12px">local_parking</i> ${b.slot} &nbsp;·&nbsp; <i class="material-icons" style="font-size:12px">access_time</i> ${b.date} · ${b.time}</div>
+      <div class="booking-vehicle">${b.vehicle}</div>
+      ${active ? `<div style="display:flex;align-items:center;gap:8px;background:rgba(0,198,162,.07);border:1px solid rgba(0,198,162,.2);border-radius:10px;padding:10px 12px;margin-top:10px"><i class="material-icons" style="color:var(--primary);font-size:16px">timer</i><span style="font-size:12px;color:var(--text-sec)">Time remaining</span><span style="margin-left:auto;font-size:16px;font-weight:800;color:var(--primary);letter-spacing:-.5px">${b.remaining}</span></div>` : ''}
+      <div class="booking-bottom">
+        <span class="booking-amount">${b.amount}</span>
+        <div class="booking-btns">
+          ${b.status==='Active' ? `<button class="btn btn-sm" style="background:rgba(255,181,71,.1);color:var(--amber);border:1px solid rgba(255,181,71,.3)">Extend</button><button class="btn btn-sm" style="background:rgba(0,198,162,.1);color:var(--primary);border:1px solid rgba(0,198,162,.3)">Navigate</button>` : ''}
+          ${b.status==='Confirmed' ? `<button class="btn btn-sm" style="background:rgba(255,92,92,.1);color:var(--red);border:1px solid rgba(255,92,92,.3)">Cancel</button><button class="btn btn-sm" style="background:rgba(0,198,162,.1);color:var(--primary);border:1px solid rgba(0,198,162,.3)">View QR</button>` : ''}
+          ${b.status==='Completed'||b.status==='Cancelled' ? `<button class="btn btn-sm" style="background:rgba(0,198,162,.1);color:var(--primary);border:1px solid rgba(0,198,162,.3)">Rebook</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+const NOTIFS = [
+  {icon:'bookmark_added',col:'#00C6A2',bg:'rgba(0,198,162,.1)',title:'Booking Confirmed 🎉',body:'Slot B-03 at City Mall confirmed for today.',time:'2 min ago',read:false},
+  {icon:'timer',col:'#FFB547',bg:'rgba(255,181,71,.1)',title:'Expiring Soon ⏰',body:'Your slot at Tech Park expires in 30 minutes.',time:'28 min ago',read:false},
+  {icon:'payments',col:'#3B82F6',bg:'rgba(59,130,246,.1)',title:'Payment Successful',body:'₹49.56 paid via UPI for City Mall Parking.',time:'2 hr ago',read:true},
+  {icon:'local_parking',col:'#8B5CF6',bg:'rgba(139,92,246,.1)',title:'New Spot Near You',body:'Railway Station Lot now has 12 free slots.',time:'5 hr ago',read:true},
+  {icon:'star',col:'#FFB547',bg:'rgba(255,181,71,.1)',title:'Rate Your Experience',body:'How was parking at Govt Plaza?',time:'Yesterday',read:true},
+];
+
+function renderNotifs() {
+  document.getElementById('notif-list').innerHTML = NOTIFS.map(n => `
+    <div class="notif-item${n.read?'':' unread'}">
+      <div class="notif-dot${n.read?' read':''}"></div>
+      <div class="notif-icon" style="background:${n.bg}"><i class="material-icons" style="color:${n.col};font-size:20px">${n.icon}</i></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;margin-bottom:3px">${n.title}</div>
+        <div style="font-size:12px;color:var(--text-sec);line-height:1.4">${n.body}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">${n.time}</div>
+      </div>
+    </div>`).join('');
+}
+
+window.showTab = (tab, el) => {
+  document.querySelectorAll('.tab-bar .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-bookings').classList.toggle('hidden', tab!=='bookings');
+  document.getElementById('tab-notifications').classList.toggle('hidden', tab!=='notifications');
+};
+
+renderBookings();
+renderNotifs();
+</script>
+</body>
+</html>

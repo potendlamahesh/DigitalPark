@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>SmartPark — Booking Confirmed</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+@keyframes pop { 0%{transform:scale(0)} 70%{transform:scale(1.1)} 100%{transform:scale(1)} }
+.success-icon { animation: pop .5s cubic-bezier(.34,1.56,.64,1) forwards; }
+.qr-box { width:160px;height:160px;background:var(--bg-card2);border-radius:14px;border:2px solid rgba(0,198,162,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto }
+.conf-row { display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border) }
+.conf-row:last-child { border:none }
+</style>
+</head>
+<body>
+<div style="padding:40px 24px 120px;min-height:100vh;display:flex;flex-direction:column;align-items:center">
+
+  <!-- Success icon -->
+  <div class="success-icon" style="width:100px;height:100px;background:rgba(0,198,162,.12);border-radius:50%;border:2px solid rgba(0,198,162,.35);display:flex;align-items:center;justify-content:center;margin-bottom:20px">
+    <i class="material-icons" style="font-size:52px;color:var(--primary)">check_circle</i>
+  </div>
+
+  <h1 style="text-align:center;margin-bottom:8px">Booking Confirmed! 🎉</h1>
+  <p style="text-align:center;margin-bottom:28px">Your car parking slot is reserved.</p>
+
+  <!-- Booking card -->
+  <div class="card" style="width:100%;max-width:380px;margin-bottom:16px">
+    <!-- QR Code -->
+    <div class="qr-box" style="margin-bottom:16px">
+      <i class="material-icons" style="font-size:70px;color:var(--primary)">qr_code_2</i>
+      <div style="font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:1.5px;margin-top:4px" id="qr-plate">TG09AB1234</div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:14px">
+      <div class="conf-row">
+        <span style="font-size:12px;color:var(--text-muted)">Booking ID</span>
+        <span style="font-size:12px;font-weight:700" id="booking-id">#SP-...</span>
+      </div>
+      <div class="conf-row">
+        <span style="font-size:12px;color:var(--text-muted)">Parking</span>
+        <span style="font-size:12px;font-weight:700" id="booking-lot">-</span>
+      </div>
+      <div class="conf-row">
+        <span style="font-size:12px;color:var(--text-muted)">Slot</span>
+        <span style="font-size:12px;font-weight:700;color:var(--primary)" id="booking-slot">-</span>
+      </div>
+      <div class="conf-row">
+        <span style="font-size:12px;color:var(--text-muted)">Vehicle</span>
+        <span style="font-size:12px;font-weight:700" id="booking-plate">-</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expiry timer -->
+  <div style="width:100%;max-width:380px;background:rgba(255,181,71,.08);border:1px solid rgba(255,181,71,.25);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:28px">
+    <i class="material-icons" style="color:var(--amber)">timer</i>
+    <span style="font-size:12px;color:var(--text-sec)">Reservation valid for</span>
+    <span style="margin-left:auto;font-size:18px;font-weight:900;color:var(--amber);letter-spacing:-.5px" id="countdown">14:32</span>
+  </div>
+
+  <!-- Buttons -->
+  <div style="display:flex;gap:12px;width:100%;max-width:380px">
+    <a href="map.html" class="btn btn-ghost btn-full">Navigate</a>
+    <a href="dashboard.html" class="btn btn-primary btn-full">Done</a>
+  </div>
+
+</div>
+
+<script>
+const booking = JSON.parse(sessionStorage.getItem('sp_booking') || '{}');
+const bookingId = booking.id ? '#SP-' + String(booking.id).slice(-6).toUpperCase() : '-';
+document.getElementById('booking-id').textContent    = bookingId;
+document.getElementById('booking-lot').textContent   = booking.lot   || '-';
+document.getElementById('booking-slot').textContent  = booking.floor && booking.slot ? `${booking.floor} – ${booking.slot}` : '-';
+document.getElementById('booking-plate').textContent = booking.plate || '-';
+document.getElementById('qr-plate').textContent      = (booking.plate||'').replace(/\s/g,'') || 'N/A';
+
+// Countdown
+let secs = 14*60+32;
+const el  = document.getElementById('countdown');
+setInterval(() => {
+  if (secs <= 0) return;
+  secs--;
+  const m = String(Math.floor(secs/60)).padStart(2,'0');
+  const s = String(secs%60).padStart(2,'0');
+  el.textContent = `${m}:${s}`;
+}, 1000);
+</script>
+</body>
+</html>

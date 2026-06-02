@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>SmartPark — My Documents</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+<div class="page">
+  <div class="app-bar" style="padding-top:48px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="profile.html" style="width:36px;height:36px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center">
+        <i class="material-icons" style="font-size:20px">arrow_back</i>
+      </a>
+      <h2>My Documents</h2>
+    </div>
+  </div>
+
+  <div style="padding:16px 20px">
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:14px;background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);border-radius:12px;margin-bottom:16px">
+      <i class="material-icons" style="color:var(--blue);font-size:18px;flex-shrink:0">lock</i>
+      <p style="font-size:12px;color:var(--blue);line-height:1.5;margin:0">Documents are stored securely in Firebase and accessible from any device when logged in.</p>
+    </div>
+    <div id="docs-list"></div>
+  </div>
+</div>
+
+<!-- Document Modal -->
+<div class="modal-backdrop" id="doc-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <h3 style="text-align:center;margin-bottom:20px" id="modal-doc-title">Document</h3>
+    <label class="input-label">Document Number</label>
+    <div class="input-wrap" style="margin-bottom:14px">
+      <i class="material-icons inp-icon">numbers</i>
+      <input type="text" id="doc-number" placeholder="e.g. AP09 20210012345" style="text-transform:uppercase">
+    </div>
+    <label class="input-label">Expiry Date</label>
+    <div class="input-wrap" style="margin-bottom:24px">
+      <i class="material-icons inp-icon">calendar_today</i>
+      <input type="text" id="doc-expiry" placeholder="e.g. 15 Mar 2030">
+    </div>
+    <div style="display:flex;gap:12px">
+      <button class="btn btn-ghost btn-full" onclick="closeDocModal()">Cancel</button>
+      <button class="btn btn-primary btn-full" onclick="saveDoc()">Save Document</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { db }  from './js/firebase-config.js';
+import { getUser } from './js/app.js';
+import { injectSidebar } from './js/sidebar.js';
+import { doc, getDoc, setDoc, deleteDoc, collection }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const user = getUser();
+const DOCS_META = [
+  { key:'licence',   icon:'badge',         color:'#00C6A2', label:'Driving Licence'  },
+  { key:'rc',        icon:'directions_car', color:'#3B82F6', label:'RC Book'          },
+  { key:'insurance', icon:'security',       color:'#22C55E', label:'Insurance'        },
+  { key:'puc',       icon:'eco',            color:'#FFB547', label:'PUC Certificate'  },
+];
+let savedDocs = {};
+let editingKey = null;
+
+async function loadDocs() {
+  if (!user?.uid) return;
+  for (const m of DOCS_META) {
+    try {
+      const snap = await getDoc(doc(db,'users',user.uid,'documents',m.key));
+      if (snap.exists()) savedDocs[m.key] = snap.data();
+    } catch(_) {}
+  }
+  render();
+}
+
+function render() {
+  document.getElementById('docs-list').innerHTML = DOCS_META.map(m => {
+    const d = savedDocs[m.key];
+    const uploaded = !!d;
+    const expired  = d?.expired;
+    const borderCol = expired ? 'rgba(255,92,92,.4)' : uploaded ? `${m.color}33` : 'var(--border)';
+    const borderW   = expired ? '1.5px' : '1px';
+    return `
+    <div class="doc-card" style="border:${borderW} solid ${borderCol}" onclick="openDocModal('${m.key}')">
+      <div class="doc-icon" style="background:${m.color}18;border:1px solid ${m.color}30">
+        <i class="material-icons" style="color:${m.color}">${m.icon}</i>
+      </div>
+      <div class="doc-info">
+        <div class="doc-name">${m.label}</div>
+        ${uploaded
+          ? `<div class="doc-num">${d.number||''}</div>
+             <div class="doc-exp" style="color:${expired?'var(--red)':'var(--text-muted)'}">
+               <i class="material-icons" style="font-size:11px;vertical-align:middle">calendar_today</i>
+               Valid until ${d.expiry||'-'}
+             </div>`
+          : `<div class="doc-exp">Tap to add document</div>`}
+      </div>
+      ${expired
+        ? `<span style="background:rgba(255,92,92,.1);color:var(--red);border:1px solid rgba(255,92,92,.2);padding:3px 9px;border-radius:8px;font-size:10px;font-weight:700;flex-shrink:0">Expired</span>`
+        : uploaded
+          ? `<i class="material-icons" style="color:#22C55E;flex-shrink:0">verified</i>`
+          : `<span style="background:rgba(255,181,71,.1);color:var(--amber);border:1px solid rgba(255,181,71,.2);padding:3px 9px;border-radius:8px;font-size:10px;font-weight:700;flex-shrink:0">Add</span>`}
+    </div>`;
+  }).join('');
+}
+
+window.openDocModal = (key) => {
+  editingKey = key;
+  const meta = DOCS_META.find(m => m.key === key);
+  const d    = savedDocs[key];
+  document.getElementById('modal-doc-title').textContent = meta.label;
+  document.getElementById('doc-number').value  = d?.number  || '';
+  document.getElementById('doc-expiry').value  = d?.expiry  || '';
+  document.getElementById('doc-modal').classList.add('open');
+};
+window.closeDocModal = () => document.getElementById('doc-modal').classList.remove('open');
+window.saveDoc = async () => {
+  if (!user?.uid || !editingKey) return;
+  const number = document.getElementById('doc-number').value.trim().toUpperCase();
+  const expiry = document.getElementById('doc-expiry').value.trim();
+  if (!number) { alert('Enter document number'); return; }
+  const data = { number, expiry, uploaded:true, expired:false, updatedAt: new Date().toISOString() };
+  await setDoc(doc(db,'users',user.uid,'documents',editingKey), data, {merge:true});
+  savedDocs[editingKey] = data;
+  render(); closeDocModal();
+};
+document.getElementById('doc-modal').addEventListener('click', e => { if(e.target===document.getElementById('doc-modal')) closeDocModal(); });
+loadDocs();
+</script>
+</body>
+</html>
