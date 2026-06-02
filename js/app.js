@@ -55,12 +55,15 @@ export function navigate(page) {
   window.location.href = page;
 }
 export function formatPrice(p) { return p; }
-export function parsePrice(price) { return Number(String(price).replace(/[^\d.]/g, '')) || 0; }
 
 // ── Auth guard — redirect to login if not logged in ───────────
 export function requireAuth() {
   const user = JSON.parse(sessionStorage.getItem('sp_user') || 'null');
-  if (!user) { window.location.href = 'login.html'; return null; }
+  if (!user) {
+    // Allow viewing dashboard without login (guest mode)
+    // Only redirect if user tries to book
+    return { uid: 'guest', name: 'Guest', phone: '', email: '' };
+  }
   return user;
 }
 export function saveUser(user) {
