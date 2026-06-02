@@ -332,7 +332,7 @@ function renderGoogleMarkers() {
   });
 }
 
-const infoWindow = new google.maps.InfoWindow ? null : null;
+let infoWindow = null;
 let gmInfoWindow = null;
 function showGooglePopup(lot, marker) {
   selectedLot = lot;
@@ -356,8 +356,8 @@ function showGooglePopup(lot, marker) {
 
 // ── Fallback map ──────────────────────────────────────────────
 function showFallback() {
-
-  document.getElementById('map-fallback').style.display = 'none';
+  document.getElementById('google-map').style.display = 'none';
+  document.getElementById('map-fallback').style.display = 'block';
 
   const map = L.map('google-map').setView(
     [16.3067, 80.4365],
