@@ -59,11 +59,7 @@ export function formatPrice(p) { return p; }
 // ── Auth guard — redirect to login if not logged in ───────────
 export function requireAuth() {
   const user = JSON.parse(sessionStorage.getItem('sp_user') || 'null');
-  if (!user) {
-    // Allow viewing dashboard without login (guest mode)
-    // Only redirect if user tries to book
-    return { uid: 'guest', name: 'Guest', phone: '', email: '' };
-  }
+  if (!user) { window.location.href = 'login.html'; return null; }
   return user;
 }
 export function saveUser(user) {
