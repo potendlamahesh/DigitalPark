@@ -7,122 +7,525 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/responsive.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
-.map-search { position:absolute; top:14px; left:14px; right:14px; z-index:10; }
-.map-search input { width:100%; padding:13px 14px 13px 44px; border-radius:14px; border:1px solid var(--border); background:#fff; font-size:13px; box-shadow:0 4px 20px rgba(0,0,0,.08); outline:none; }
-.map-fab-col { position:absolute; right:14px; top:80px; display:flex; flex-direction:column; gap:8px; z-index:10; }
-.map-fab-btn { width:42px; height:42px; background:#fff; border-radius:12px; border:1px solid var(--border); box-shadow:0 3px 10px rgba(0,0,0,.1); display:flex; align-items:center; justify-content:center; cursor:pointer; }
-.map-fab-btn.active { background:rgba(0,198,162,.12); border-color:rgba(0,198,162,.4); }
-.map-cards { position:absolute; bottom:80px; left:0; right:0; z-index:10; overflow-x:auto; display:flex; gap:10px; padding:0 14px; }
-.map-cards::-webkit-scrollbar { display:none; }
-.filter-chips-map { position:absolute; top:70px; left:14px; right:60px; display:flex; gap:7px; overflow-x:auto; z-index:10; }
-.filter-chips-map::-webkit-scrollbar { display:none; }
-.chip-map { flex-shrink:0; padding:6px 14px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer; border:1px solid rgba(226,232,240,.8); background:rgba(255,255,255,.92); color:var(--text-sec); backdrop-filter:blur(8px); transition:all .18s; box-shadow:0 2px 8px rgba(0,0,0,.08); }
-.chip-map.active { background:var(--primary); border-color:var(--primary); color:#fff; }
-#google-map { width:100%; height:100%; }
+*{box-sizing:border-box}
+body{margin:0;padding:0;overflow:hidden}
+.map-wrap{position:relative;width:100%;height:100vh}
+
+/* Search overlay */
+.map-search-bar{
+  position:absolute;top:52px;left:14px;right:14px;z-index:20;
+  display:flex;align-items:center;gap:8px;
+  background:#fff;border:1px solid var(--border);border-radius:14px;
+  padding:0 14px;height:48px;
+  box-shadow:0 4px 20px rgba(0,0,0,.1);
+}
+.map-search-bar i{color:var(--text-muted);font-size:18px;flex-shrink:0}
+.map-search-bar input{flex:1;border:none;background:transparent;font-size:13px;outline:none;color:var(--text)}
+.map-search-bar input::placeholder{color:var(--text-muted)}
+
+/* Filter chips below search */
+.map-chips{
+  position:absolute;top:112px;left:14px;right:14px;z-index:20;
+  display:flex;gap:7px;overflow-x:auto;
+}
+.map-chips::-webkit-scrollbar{display:none}
+.map-chip{
+  flex-shrink:0;padding:6px 14px;border-radius:100px;font-size:11px;font-weight:600;
+  background:rgba(255,255,255,.95);border:1px solid rgba(226,232,240,.9);
+  color:var(--text-sec);cursor:pointer;backdrop-filter:blur(8px);
+  box-shadow:0 2px 8px rgba(0,0,0,.07);transition:all .18s;white-space:nowrap;
+}
+.map-chip.active{background:var(--primary);border-color:var(--primary);color:#fff}
+
+/* FAB buttons */
+.map-fabs{
+  position:absolute;right:14px;top:160px;z-index:20;
+  display:flex;flex-direction:column;gap:8px;
+}
+.map-fab-btn{
+  width:42px;height:42px;background:#fff;border-radius:12px;
+  border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.1);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .18s;
+}
+.map-fab-btn:hover{background:rgba(0,198,162,.08);border-color:rgba(0,198,162,.4)}
+.map-fab-btn.active{background:rgba(0,198,162,.12);border-color:rgba(0,198,162,.4)}
+.map-fab-btn i{font-size:18px;color:var(--text-sec)}
+.map-fab-btn.active i{color:var(--primary)}
+
+/* Map container */
+#google-map{width:100%;height:100%}
+
+/* Fallback map when API fails */
+.map-fallback{
+  width:100%;height:100%;background:linear-gradient(135deg,#e8f4f0,#dbeef7);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.map-fallback-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(0,198,162,.08) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,198,162,.08) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+/* Simulated roads */
+.road-h{position:absolute;height:10px;background:rgba(255,255,255,.8);border-radius:2px}
+.road-v{position:absolute;width:10px;background:rgba(255,255,255,.8);border-radius:2px}
+
+/* Lot marker pins */
+.lot-pin{
+  position:absolute;transform:translate(-50%,-100%);
+  display:flex;flex-direction:column;align-items:center;cursor:pointer;
+  transition:transform .2s;z-index:5;
+}
+.lot-pin:hover{transform:translate(-50%,-100%) scale(1.1)}
+.pin-head{
+  width:44px;height:44px;border-radius:50%;border:2.5px solid #fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:900;color:#fff;
+  box-shadow:0 4px 12px rgba(0,0,0,.2);
+}
+.pin-tail{width:3px;height:10px;margin-top:-1px;border-radius:0 0 3px 3px}
+.pin-label{
+  background:#fff;border:1px solid var(--border);border-radius:8px;
+  padding:3px 8px;font-size:10px;font-weight:700;
+  box-shadow:0 2px 8px rgba(0,0,0,.1);white-space:nowrap;margin-top:4px;
+}
+
+/* Bottom lot cards */
+.bottom-cards{
+  position:absolute;bottom:80px;left:0;right:0;z-index:20;
+  display:flex;gap:10px;overflow-x:auto;padding:0 14px;
+}
+.bottom-cards::-webkit-scrollbar{display:none}
+.b-card{
+  flex-shrink:0;width:190px;background:#fff;border-radius:14px;
+  border:1px solid var(--border);padding:12px;
+  box-shadow:0 4px 16px rgba(0,0,0,.08);cursor:pointer;
+  transition:transform .15s;
+}
+.b-card:hover{transform:translateY(-2px)}
+.b-card-name{font-size:13px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.b-card-addr{font-size:10px;color:var(--text-muted);margin-bottom:6px}
+.b-card-bottom{display:flex;align-items:center;justify-content:space-between}
+
+/* Info popup */
+.map-popup{
+  position:absolute;z-index:30;background:#fff;border-radius:16px;
+  border:1px solid var(--border);padding:16px;width:220px;
+  box-shadow:0 8px 32px rgba(0,0,0,.14);display:none;
+}
+.map-popup.show{display:block}
+.popup-close{position:absolute;top:8px;right:8px;cursor:pointer;color:var(--text-muted)}
+
+/* Bottom nav */
+.bottom-nav{
+  position:fixed;bottom:10px;left:50%;transform:translateX(-50%);
+  width:calc(100% - 28px);max-width:452px;z-index:100;
+}
+
+@media(min-width:1024px){
+  .map-wrap{display:flex;height:100vh}
+  #google-map,.map-fallback{flex:1}
+  .map-side{
+    width:340px;background:#fff;border-left:1px solid var(--border);
+    overflow-y:auto;z-index:20;display:flex;flex-direction:column;
+  }
+  .map-side-header{padding:16px 16px 8px;border-bottom:1px solid var(--border);flex-shrink:0}
+  .map-side-cards{flex:1;overflow-y:auto;padding:12px}
+  .bottom-cards{display:none}
+  .map-chips{top:14px;left:14px;right:360px}
+  .map-search-bar{top:14px;left:14px;right:360px}
+  .map-fabs{top:70px}
+  .b-side-card{
+    background:#fff;border:1.5px solid var(--border);border-radius:14px;
+    padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .18s;
+  }
+  .b-side-card:hover{border-color:var(--primary)}
+}
 </style>
 </head>
 <body>
 
-<div style="position:relative;height:100vh;overflow:hidden">
+<div class="map-wrap">
 
-  <!-- Search bar overlay -->
-  <div class="map-search">
-    <i class="material-icons" style="position:absolute;left:30px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:18px;pointer-events:none">search</i>
-    <input type="text" placeholder="Search parking on map..." id="map-search-input">
-    <div style="position:absolute;right:28px;top:50%;transform:translateY(-50%);background:var(--primary);padding:7px;border-radius:9px;cursor:pointer">
+  <!-- Search bar -->
+  <div class="map-search-bar">
+    <i class="material-icons">search</i>
+    <input type="text" placeholder="Search parking on map..." id="map-search">
+    <div style="background:var(--primary);padding:6px 10px;border-radius:9px;cursor:pointer">
       <i class="material-icons" style="font-size:14px;color:#000">tune</i>
     </div>
   </div>
 
   <!-- Filter chips -->
-  <div class="filter-chips-map" style="top:75px">
-    <div class="chip-map active">All</div>
-    <div class="chip-map">Nearby</div>
-    <div class="chip-map">Covered</div>
-    <div class="chip-map">EV</div>
-    <div class="chip-map">24/7</div>
+  <div class="map-chips">
+    <div class="map-chip active" onclick="filterMap('all',this)">All</div>
+    <div class="map-chip" onclick="filterMap('available',this)">Available</div>
+    <div class="map-chip" onclick="filterMap('covered',this)">Covered</div>
+    <div class="map-chip" onclick="filterMap('ev',this)">EV Charging</div>
+    <div class="map-chip" onclick="filterMap('open24',this)">24/7 Open</div>
   </div>
 
   <!-- Map FABs -->
-  <div class="map-fab-col">
-    <div class="map-fab-btn" id="fab-heatmap" title="Heatmap" onclick="toggleHeatmap()">
-      <i class="material-icons" style="font-size:18px;color:var(--text-sec)">layers</i>
-    </div>
-    <div class="map-fab-btn" id="fab-traffic" title="Traffic" onclick="toggleTraffic()">
-      <i class="material-icons" style="font-size:18px;color:var(--text-sec)">traffic</i>
+  <div class="map-fabs">
+    <div class="map-fab-btn" id="fab-traffic" title="Traffic" onclick="toggleTraffic(this)">
+      <i class="material-icons">traffic</i>
     </div>
     <div class="map-fab-btn" title="My Location" onclick="goToMyLocation()">
-      <i class="material-icons" style="font-size:18px;color:var(--text-sec)">my_location</i>
+      <i class="material-icons">my_location</i>
     </div>
     <div class="map-fab-btn" title="Zoom In" onclick="zoomIn()">
-      <i class="material-icons" style="font-size:18px;color:var(--text-sec)">add</i>
+      <i class="material-icons">add</i>
     </div>
     <div class="map-fab-btn" title="Zoom Out" onclick="zoomOut()">
-      <i class="material-icons" style="font-size:18px;color:var(--text-sec)">remove</i>
+      <i class="material-icons">remove</i>
     </div>
   </div>
 
-  <!-- Map -->
+  <!-- Map or Fallback -->
   <div id="google-map"></div>
 
-  <!-- Bottom lot cards -->
-  <div class="map-cards" id="map-lot-cards"></div>
+  <!-- Fallback map (shown if Google Maps fails) -->
+  <div class="map-fallback" id="map-fallback" style="display:none">
+    <div class="map-fallback-grid"></div>
+    <!-- Roads -->
+    <div class="road-h" style="top:35%;left:0;right:0"></div>
+    <div class="road-h" style="top:60%;left:0;right:0"></div>
+    <div class="road-v" style="left:30%;top:0;bottom:0"></div>
+    <div class="road-v" style="left:65%;top:0;bottom:0"></div>
+    <!-- Lot pins rendered by JS -->
+    <div id="fallback-pins"></div>
+  </div>
+
+  <!-- Desktop side panel -->
+  <div class="map-side" id="map-side" style="display:none">
+    <div class="map-side-header">
+      <h3 style="font-size:15px;font-weight:700">Parking Lots</h3>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px" id="side-count">6 locations</div>
+    </div>
+    <div class="map-side-cards" id="side-cards"></div>
+  </div>
+
+  <!-- Mobile bottom cards -->
+  <div class="bottom-cards" id="bottom-cards"></div>
+
+  <!-- Lot info popup -->
+  <div class="map-popup" id="map-popup">
+    <div class="popup-close" onclick="closePopup()"><i class="material-icons" style="font-size:18px">close</i></div>
+    <div style="font-size:14px;font-weight:700;margin-bottom:3px" id="popup-name"></div>
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px" id="popup-addr"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <span style="font-weight:800;color:var(--primary)" id="popup-price"></span>
+      <span id="popup-status" class="badge"></span>
+    </div>
+    <button id="popup-book-btn" class="btn btn-primary btn-full btn-sm" style="color:#000" onclick="bookFromPopup()">Book Now</button>
+  </div>
 
 </div>
 
 <!-- Bottom Nav -->
 <nav class="bottom-nav">
-  <a href="dashboard.html" class="nav-item">
-    <div class="nav-icon"><i class="material-icons">home</i></div>
-    <span>Home</span>
-  </a>
-  <a href="map.html" class="nav-item active">
-    <div class="nav-icon"><i class="material-icons">map</i></div>
-    <span>Map</span>
-  </a>
-  <button class="nav-fab" onclick="location.href='qr-scanner.html'">
-    <i class="material-icons">qr_code_scanner</i>
-  </button>
-  <a href="notifications.html" class="nav-item">
-    <div class="nav-icon"><i class="material-icons">bookmark_border</i></div>
-    <span>Bookings</span>
-  </a>
-  <a href="profile.html" class="nav-item">
-    <div class="nav-icon"><div class="nav-avatar-circle" id="nav-avatar">?</div></div>
-    <span>Profile</span>
-  </a>
+  <div style="background:rgba(255,255,255,.96);backdrop-filter:blur(20px);border:1px solid rgba(226,232,240,.8);border-radius:30px;height:72px;display:flex;align-items:center;box-shadow:0 8px 32px rgba(0,0,0,.12);padding:0 4px">
+    <a href="dashboard.html" class="nav-item"><div class="nav-icon"><i class="material-icons">home</i></div><span>Home</span></a>
+    <a href="map.html" class="nav-item active"><div class="nav-icon"><i class="material-icons">map</i></div><span>Map</span></a>
+    <button class="nav-fab" onclick="location.href='qr-scanner.html'"><i class="material-icons">qr_code_scanner</i></button>
+    <a href="notifications.html" class="nav-item"><div class="nav-icon"><i class="material-icons">bookmark_border</i></div><span>Bookings</span></a>
+    <a href="profile.html" class="nav-item"><div class="nav-icon"><div class="nav-avatar-circle" id="nav-avatar">?</div></div><span>Profile</span></a>
+  </div>
 </nav>
 
 <script type="module">
-import { initMap } from './js/map.js';
-import { getUser } from './js/app.js';
+import { PARKING_LOTS, statusColor, statusLabel, getUser } from './js/app.js';
+import { injectSidebar } from './js/sidebar.js';
+import { rtdb }    from './js/firebase-config.js';
+import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
 const user = getUser();
 if (user?.name) document.getElementById('nav-avatar').textContent = user.name[0].toUpperCase();
-initMap();
+injectSidebar('map');
 
-let trafficLayer, heatmapOn = false, trafficOn = false;
+let lots = [...PARKING_LOTS];
+let activeFilter = 'all';
+let selectedLot  = null;
+let gMap = null;
+let markers = [];
+let trafficLayer = null;
+let trafficOn = false;
 
-window.toggleHeatmap = () => {
-  heatmapOn = !heatmapOn;
-  document.getElementById('fab-heatmap').classList.toggle('active', heatmapOn);
+// ── Load real-time data ───────────────────────────────────────
+const lotsRef = ref(rtdb,'smartpark/parking_lots');
+onValue(lotsRef, snap => {
+  const fb = snap.val() || {};
+  lots = PARKING_LOTS.map(l => ({...l, available: fb[l.id]?.available ?? l.available}));
+  renderAll();
+}, () => renderAll());
+
+function filteredLots() {
+  if (activeFilter === 'available') return lots.filter(l => l.available > 0);
+  if (activeFilter === 'covered')   return lots.filter(l => l.covered);
+  if (activeFilter === 'ev')        return lots.filter(l => l.ev);
+  if (activeFilter === 'open24')    return lots.filter(l => l.open24);
+  return lots;
+}
+
+// ── Try Google Maps ───────────────────────────────────────────
+function tryGoogleMaps() {
+  const script = document.createElement('script');
+  script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyDYFfyIO_ub-McwjfVDJW_AVpjOcxbdaaw&callback=initGoogleMap';
+  script.async = true; script.defer = true;
+  script.onerror = () => showFallback();
+  document.head.appendChild(script);
+
+  // If maps doesn't load in 5 seconds, show fallback
+  setTimeout(() => {
+    if (!gMap) showFallback();
+  }, 5000);
+}
+
+window.initGoogleMap = function() {
+  const GUNTUR = {lat:16.3067, lng:80.4365};
+  gMap = new google.maps.Map(document.getElementById('google-map'), {
+    center: GUNTUR, zoom: 14,
+    styles:[
+      {featureType:'poi',stylers:[{visibility:'off'}]},
+      {featureType:'transit',stylers:[{visibility:'off'}]},
+      {featureType:'road',elementType:'geometry',stylers:[{color:'#ffffff'}]},
+      {featureType:'landscape',elementType:'geometry',stylers:[{color:'#f4f9f7'}]},
+      {featureType:'water',elementType:'geometry',stylers:[{color:'#bfdbfe'}]},
+    ],
+    disableDefaultUI:true, zoomControl:false,
+    fullscreenControl:false, streetViewControl:false,
+  });
+  window.gMapInstance = gMap;
+
+  // Get user location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      gMap.panTo({lat:pos.coords.latitude, lng:pos.coords.longitude});
+    });
+  }
+  renderGoogleMarkers();
 };
-window.toggleTraffic = () => {
+
+function renderGoogleMarkers() {
+  markers.forEach(m => m.setMap(null)); markers = [];
+  const fl = filteredLots();
+  fl.forEach(lot => {
+    const col = statusColor(lot);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="54" viewBox="0 0 44 54">
+      <circle cx="22" cy="22" r="20" fill="${col}" stroke="white" stroke-width="2.5"/>
+      <text x="22" y="28" text-anchor="middle" font-size="18" font-weight="900" fill="white" font-family="sans-serif">P</text>
+      <path d="M22 44 L15 30 Q22 46 29 30 Z" fill="${col}"/>
+    </svg>`;
+    const marker = new google.maps.Marker({
+      position: {lat:lot.lat, lng:lot.lng}, map: gMap,
+      icon: {url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg), scaledSize:new google.maps.Size(44,54)},
+      title: lot.name,
+    });
+    marker.addListener('click', () => showGooglePopup(lot, marker));
+    markers.push(marker);
+  });
+}
+
+const infoWindow = new google.maps.InfoWindow ? null : null;
+let gmInfoWindow = null;
+function showGooglePopup(lot, marker) {
+  selectedLot = lot;
+  if (!gmInfoWindow) gmInfoWindow = new google.maps.InfoWindow();
+  const col = statusColor(lot);
+  gmInfoWindow.setContent(`
+    <div style="font-family:-apple-system,sans-serif;padding:6px 2px;min-width:170px;max-width:200px">
+      <b style="font-size:14px;display:block;margin-bottom:3px">${lot.name}</b>
+      <span style="font-size:11px;color:#9BAAB8;display:block;margin-bottom:8px">${lot.address}</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <b style="color:#00C6A2;font-size:14px">${lot.price}</b>
+        <span style="background:${col}18;color:${col};border:1px solid ${col}30;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700">${statusLabel(lot)}</span>
+      </div>
+      <a href="booking.html" onclick="sessionStorage.setItem('sp_selected_lot','${JSON.stringify(lot).replace(/'/g,"\\'").replace(/"/g,'&quot;')}');return true"
+        style="display:block;background:#00C6A2;color:#000;text-align:center;padding:8px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none">
+        Book Now →
+      </a>
+    </div>`);
+  gmInfoWindow.open(gMap, marker);
+}
+
+// ── Fallback map ──────────────────────────────────────────────
+function showFallback() {
+
+  document.getElementById('map-fallback').style.display = 'none';
+
+  const map = L.map('google-map').setView(
+    [16.3067, 80.4365],
+    13
+  );
+
+  L.tileLayer(
+    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+      maxZoom: 19
+    }
+  ).addTo(map);
+
+  lots.forEach(lot => {
+
+    L.marker([lot.lat, lot.lng])
+      .addTo(map)
+      .bindPopup(`
+        <b>${lot.name}</b><br>
+        ${lot.address}<br>
+        ${lot.price}<br>
+        ${lot.available} free slots
+      `);
+
+  });
+
+  if (navigator.geolocation) {
+
+    navigator.geolocation.getCurrentPosition((pos) => {
+
+      L.marker([
+        pos.coords.latitude,
+        pos.coords.longitude
+      ])
+      .addTo(map)
+      .bindPopup("You are here");
+
+      map.setView(
+        [
+          pos.coords.latitude,
+          pos.coords.longitude
+        ],
+        14
+      );
+
+    });
+
+  }
+
+}
+
+function renderFallbackPins() {
+  const container = document.getElementById('fallback-pins');
+  const wrap      = document.getElementById('map-fallback');
+  const fl = filteredLots();
+  // Map Guntur coords to % positions
+  const LAT_MIN=16.285, LAT_MAX=16.335, LNG_MIN=80.425, LNG_MAX=80.470;
+  container.innerHTML = fl.map(lot => {
+    const x = ((lot.lng - LNG_MIN)/(LNG_MAX-LNG_MIN)*80 + 5).toFixed(1);
+    const y = ((LAT_MAX - lot.lat)/(LAT_MAX-LAT_MIN)*80 + 5).toFixed(1);
+    const col = statusColor(lot);
+    return `
+    <div class="lot-pin" style="left:${x}%;top:${y}%" onclick="showFallbackPopup('${lot.id}')">
+      <div class="pin-head" style="background:${col}">P</div>
+      <div class="pin-tail" style="background:${col}"></div>
+      <div class="pin-label">${lot.available} free · ${lot.price}</div>
+    </div>`;
+  }).join('');
+}
+
+window.showFallbackPopup = function(id) {
+  const lot = lots.find(l => l.id === id);
+  if (!lot) return;
+  selectedLot = lot;
+  const col = statusColor(lot);
+  const popup = document.getElementById('map-popup');
+  document.getElementById('popup-name').textContent  = lot.name;
+  document.getElementById('popup-addr').textContent  = lot.address;
+  document.getElementById('popup-price').textContent = lot.price;
+  const sb = document.getElementById('popup-status');
+  sb.textContent = statusLabel(lot);
+  sb.style.cssText = `background:${col}18;color:${col};border:1px solid ${col}28`;
+  popup.style.left = '50%'; popup.style.top = '45%';
+  popup.style.transform = 'translate(-50%,-50%)';
+  popup.classList.add('show');
+};
+window.closePopup   = () => document.getElementById('map-popup').classList.remove('show');
+window.bookFromPopup = () => { if(selectedLot){ sessionStorage.setItem('sp_selected_lot',JSON.stringify(selectedLot)); location.href='booking.html'; } };
+
+// ── Side panel + bottom cards ─────────────────────────────────
+function renderBottomCards() {
+  const fl = filteredLots();
+  document.getElementById('bottom-cards').innerHTML = fl.map(lot => {
+    const col = statusColor(lot);
+    return `<div class="b-card" onclick="sessionStorage.setItem('sp_selected_lot',JSON.stringify(${JSON.stringify(lot).replace(/"/g,'&quot;')}));location.href='booking.html'">
+      <div class="b-card-name">${lot.name}</div>
+      <div class="b-card-addr">${lot.address}</div>
+      <div class="b-card-bottom">
+        <span style="font-size:13px;font-weight:800;color:var(--primary)">${lot.price}</span>
+        <span style="background:${col}18;color:${col};border:1px solid ${col}28;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700">${statusLabel(lot)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSideCards() {
+  const fl = filteredLots();
+  document.getElementById('side-count').textContent = `${fl.length} locations`;
+  document.getElementById('side-cards').innerHTML = fl.map(lot => {
+    const col = statusColor(lot);
+    return `<div class="b-side-card" onclick="sessionStorage.setItem('sp_selected_lot',JSON.stringify(${JSON.stringify(lot).replace(/"/g,'&quot;')}));location.href='booking.html'">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <b style="font-size:13px">${lot.name}</b>
+        <span style="background:${col}18;color:${col};border:1px solid ${col}28;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700;flex-shrink:0;margin-left:6px">${statusLabel(lot)}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">${lot.address}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:11px;color:var(--text-muted)">★ ${lot.rating}</span>
+        <b style="color:var(--primary);font-size:13px">${lot.price}</b>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAll() {
+  renderBottomCards();
+  if (document.getElementById('side-cards')) renderSideCards();
+  if (gMap) renderGoogleMarkers();
+  else renderFallbackPins();
+}
+
+// ── Filter ────────────────────────────────────────────────────
+window.filterMap = (filter, el) => {
+  activeFilter = filter;
+  document.querySelectorAll('.map-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderAll();
+};
+
+// ── Map controls ──────────────────────────────────────────────
+window.toggleTraffic = (el) => {
   trafficOn = !trafficOn;
-  document.getElementById('fab-traffic').classList.toggle('active', trafficOn);
-  if (window.map) {
+  el.classList.toggle('active', trafficOn);
+  if (gMap) {
     if (!trafficLayer) trafficLayer = new google.maps.TrafficLayer();
-    trafficLayer.setMap(trafficOn ? window.map : null);
+    trafficLayer.setMap(trafficOn ? gMap : null);
   }
 };
 window.goToMyLocation = () => {
-  if (navigator.geolocation && window.map) {
+  if (navigator.geolocation && gMap) {
     navigator.geolocation.getCurrentPosition(pos =>
-      window.map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude }));
+      gMap.panTo({lat:pos.coords.latitude, lng:pos.coords.longitude}));
   }
 };
-window.zoomIn  = () => window.map && window.map.setZoom(window.map.getZoom() + 1);
-window.zoomOut = () => window.map && window.map.setZoom(window.map.getZoom() - 1);
+window.zoomIn  = () => gMap && gMap.setZoom(gMap.getZoom()+1);
+window.zoomOut = () => gMap && gMap.setZoom(gMap.getZoom()-1);
+
+// ── Desktop side panel ────────────────────────────────────────
+if (window.innerWidth >= 1024) {
+  document.getElementById('map-side').style.display = 'flex';
+  document.getElementById('map-side').style.flexDirection = 'column';
+}
+
+// ── Start ─────────────────────────────────────────────────────
+tryGoogleMaps();
+renderBottomCards();
+renderSideCards();
 </script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>
 </html>
