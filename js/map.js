@@ -8,7 +8,7 @@ let map, markers = [], infoWindow;
 export function initMap() {
   // Load Google Maps
   const script = document.createElement('script');
-  script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDYFfyIO_ub-McwjfVDJW_AVpjOcxbdaaw&callback=onMapReady`;
+  script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyAu3UNQd4oQodx5wiuoIPyTsgqShnCgGBs=onMapReady`;
   script.async = true; script.defer = true;
   document.head.appendChild(script);
   window.onMapReady = _initMap;
@@ -33,6 +33,15 @@ function _initMap() {
     fullscreenControl:  false,
     streetViewControl:  false,
   });
+  const miniMap = new google.maps.Map(
+  document.getElementById("duplicate-map"),
+  {
+    center: GUNTUR,
+    zoom: 13,
+    disableDefaultUI: true,
+    mapTypeId: "roadmap"
+  }
+);
 
   infoWindow = new google.maps.InfoWindow();
 
